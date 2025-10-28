@@ -1,10 +1,17 @@
 define(['jquery', 'core/templates'], function($, Templates) {
     'use strict';
 
-    const STORAGE_KEY = 'ai_chat_history';
+    const STORAGE_PREFIX = 'ai_chat_history_';
+    let currentMode = 'assistant'; // Default mode
+
+    function getStorageKey() {
+        return STORAGE_PREFIX + currentMode;
+    }
 
     function loadHistory() {
-        let history = localStorage.getItem(STORAGE_KEY);
+        $('#chatbot-messages').empty();
+
+        let history = localStorage.getItem(getStorageKey());
         if (!history) return;
         history = JSON.parse(history);
 
@@ -13,10 +20,10 @@ define(['jquery', 'core/templates'], function($, Templates) {
     }
 
     function saveMessage(text, sender) {
-        let history = localStorage.getItem(STORAGE_KEY);
+        let history = localStorage.getItem(getStorageKey());
         history = history ? JSON.parse(history) : [];
         history.push({ text, sender });
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
+        localStorage.setItem(getStorageKey(), JSON.stringify(history));
     }
 
     function appendMessage(text, sender, store = true) {
@@ -30,7 +37,7 @@ define(['jquery', 'core/templates'], function($, Templates) {
     function scrollMessagesToBottom() {
         const msgBox = $('#chatbot-messages')[0];
         if (msgBox) {
-            msgBox.scrollTop = msgBox.scrollHeight;
+            msgBox.scrollTo({ top: msgBox.scrollHeight, behavior: 'smooth' });
         }
     }
 
@@ -40,12 +47,33 @@ define(['jquery', 'core/templates'], function($, Templates) {
         if (!text) return;
 
         appendMessage(text, 'user');
-        console.log("User typed:", text);
+        console.log(`[${currentMode}] User typed:`, text);
         input.val('');
 
         setTimeout(() => {
-            appendMessage("Working ✅", 'bot');
-        }, 500);
+            appendMessage(`Working in ${currentMode} mode ✅`, 'bot');
+        }, 600);
+    }
+
+    function handleTabSwitch(newMode) {
+        if (newMode === currentMode) return;
+
+        currentMode = newMode;
+        console.log(`Switched to mode: ${currentMode}`);
+
+        // Update tab visuals
+        $('.chat-tab').removeClass('active');
+        $(`.chat-tab[data-mode="${currentMode}"]`).addClass('active');
+
+        // Update header title
+        const headerText = {
+            assistant: 'AI Assistant',
+            qb: 'QB Generator',
+            quiz: 'Quiz Generator'
+        }[currentMode];
+        $('.chat-header span').text(headerText);
+
+        loadHistory();
     }
 
     function bindEvents() {
@@ -66,9 +94,18 @@ define(['jquery', 'core/templates'], function($, Templates) {
                 handleSend();
             }
         });
+
+        $('.chat-tab').on('click', function() {
+            const mode = $(this).data('mode');
+            handleTabSwitch(mode);
+        });
     }
 
     function init() {
+        if (!document.getElementById('chatbot-style')) {
+            $('head').append('<link id="chatbot-style" rel="stylesheet" href="'+M.cfg.wwwroot+'/local/automation/style/chatbot.css">');
+        }
+        
         Templates.render('local_automation/chatbot', {})
             .then(html => {
                 $('body').append(html);

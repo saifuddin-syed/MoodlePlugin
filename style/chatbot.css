@@ -97,3 +97,34 @@
     border-radius: 6px;
     cursor: pointer;
 }
+
+/* Tabs (for AI Assistant, QB Generator, Quiz Generator) */
+.chat-tabs {
+    display: flex;
+    justify-content: space-around;
+    background: #f8f8f8;
+    border-bottom: 1px solid #ccc;
+}
+
+.chat-tab {
+    flex: 1;
+    padding: 8px 0;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    color: #555;
+    transition: background 0.2s, color 0.2s;
+}
+
+.chat-tab:hover {
+    background: #eee;
+}
+
+.chat-tab.active {
+    border-bottom: 2px solid #b026ff;
+    color: #b026ff;
+    font-weight: bold;
+}
+
+

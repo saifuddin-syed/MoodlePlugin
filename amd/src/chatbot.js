@@ -41,19 +41,51 @@ define(['jquery', 'core/templates'], function($, Templates) {
         }
     }
 
+    // function handleSend() {
+    //     const input = $('#chatbot-input');
+    //     const text = input.val().trim();
+    //     if (!text) return;
+
+    //     appendMessage(text, 'user');
+    //     console.log(`[${currentMode}] User typed:`, text);
+    //     input.val('');
+
+    //     setTimeout(() => {
+    //         appendMessage(`Working in ${currentMode} mode ✅`, 'bot');
+    //     }, 600);
+    // }
+
     function handleSend() {
         const input = $('#chatbot-input');
         const text = input.val().trim();
         if (!text) return;
 
         appendMessage(text, 'user');
-        console.log(`[${currentMode}] User typed:`, text);
         input.val('');
 
-        setTimeout(() => {
-            appendMessage(`Working in ${currentMode} mode ✅`, 'bot');
-        }, 600);
+        $.ajax({
+            url: M.cfg.wwwroot + '/local/automation/chatbot_endpoint.php',
+            method: 'POST',
+            data: {
+                prompt: text,
+                mode: currentMode,
+                sesskey: M.cfg.sesskey
+            },
+            success: function(res) {
+                if (res.reply) {
+                    const formattedReply = res.reply.replace(/\n/g, '<br>');
+                    appendMessage(formattedReply, 'bot');
+                } else {
+                    appendMessage('⚠️ ' + (res.error || 'No response from AI'), 'bot');
+                }
+            },
+            error: function(xhr) {
+                appendMessage('❌ Failed to connect to server.', 'bot');
+                console.error(xhr);
+            }
+        });
     }
+
 
     function handleTabSwitch(newMode) {
         if (newMode === currentMode) return;

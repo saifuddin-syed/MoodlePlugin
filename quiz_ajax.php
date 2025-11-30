@@ -16,9 +16,6 @@ use PhpOffice\PhpPresentation\IOFactory as PptIOFactory;
 
 require_once($CFG->dirroot . '/course/lib.php');
 require_once($CFG->libdir . '/filelib.php');
-require_once($CFG->libdir . '/questionlib.php');
-require_once($CFG->dirroot . '/mod/quiz/lib.php');
-require_once($CFG->dirroot . '/mod/quiz/locallib.php');
 
 require_login();
 
@@ -159,94 +156,6 @@ function local_automation_quiz_extract_text_from_file(\stored_file $file): strin
 }
 
 /**
- * Create a multichoice question in the course question bank
- * and add it to the given quiz.
- *
- * @param stdClass $quiz      quiz record from mdl_quiz
- * @param context_course $context course context
- * @param array $q            one element from $decoded['questions']
- * @param float $marksperquestion max mark for the slot
- * @return int question id
- */
-function local_automation_quiz_create_mcq_and_add_to_quiz(stdClass $quiz, context_course $context, array $q, float $marksperquestion): int {
-    global $USER;
-
-    // 1. Default question category for this course.
-    $cat = question_get_default_category($context->id);
-    $categoryid = $cat->id;
-
-    $correctindex = (int)($q['correct_index'] ?? 0);
-
-    // 2. Build $fromform – this mimics what the question edit form would send.
-    $fromform = new stdClass();
-
-    // Core question fields.
-    $fromform->id                    = 0;  // new question
-    $fromform->category              = $categoryid;
-    $fromform->qtype                 = 'multichoice';
-    $fromform->name                  = mb_substr($q['questiontext'], 0, 250);
-    $fromform->questiontext          = $q['questiontext'];
-    $fromform->questiontextformat    = FORMAT_HTML;
-    $fromform->generalfeedback       = $q['feedback'] ?? '';
-    $fromform->generalfeedbackformat = FORMAT_HTML;
-    $fromform->defaultmark           = $marksperquestion;
-    $fromform->penalty               = 0.3333333;
-    $fromform->hidden                = 0;
-
-    // Flags normally set by forms.
-    $fromform->createdby             = $USER->id;
-    $fromform->modifiedby            = $USER->id;
-
-    // Multichoice-specific fields.
-    $fromform->single                              = 1;
-    $fromform->shuffleanswers                      = 1;
-    $fromform->answernumbering                     = 'abc';
-    $fromform->shownumcorrect                      = 0;
-    $fromform->correctfeedback                     = '';
-    $fromform->correctfeedbackformat               = FORMAT_HTML;
-    $fromform->partiallycorrectfeedback            = '';
-    $fromform->partiallycorrectfeedbackformat      = FORMAT_HTML;
-    $fromform->incorrectfeedback                   = '';
-    $fromform->incorrectfeedbackformat             = FORMAT_HTML;
-
-    // Answers – note: this is ARRAY-style, as the qtype code expects.
-    $fromform->answer         = [];
-    $fromform->fraction       = [];
-    $fromform->feedback       = [];
-    $fromform->feedbackformat = [];
-
-    foreach ($q['options'] as $idx => $opttext) {
-        $fromform->answer[$idx]         = $opttext;
-        $fromform->fraction[$idx]       = ($idx === $correctindex) ? 1.0 : 0.0;
-        $fromform->feedback[$idx]       = '';
-        $fromform->feedbackformat[$idx] = FORMAT_HTML;
-    }
-
-    // 3. Call the official API – $question is the "existing" record (new one here).
-    $qtype    = question_bank::get_qtype('multichoice');
-
-    $question = new stdClass();
-    $question->id = 0;          // new question
-    $question->category = $categoryid;
-
-    // This will create records in:
-    // - question
-    // - question_answers
-    // - qtype_multichoice_options
-    // - question_bank_entries
-    // - question_versions
-    $savedquestion = $qtype->save_question($question, $fromform);
-
-    // 4. Attach to the quiz.
-    $questionid = $savedquestion->id;
-    quiz_add_quiz_question($questionid, $quiz, 0, $marksperquestion);
-
-    return $questionid;
-}
-
-
-
-/**
  * Call Groq using curl (same style as chatbot_endpoint.php).
  */
 function local_automation_quiz_call_groq(string $systemPrompt, string $userPrompt): array {
@@ -332,8 +241,11 @@ $marksperquestion = (float)($payload['marksperquestion'] ?? 1);
 $timelimitminutes = (int)($payload['timelimitminutes'] ?? 0);
 $instructions     = trim($payload['instructions'] ?? '');
 
-// $questionspayload = $payload['questions'] ?? [];
-
+/**
+ * UPLOAD ACTION: create a quiz shell in the selected section
+ * and return useful links (edit/settings/view).
+ * This runs BEFORE any of the generate-specific validation / Groq logic.
+ */
 if ($action === 'upload') {
     $questions = $payload['questions'] ?? [];
 
@@ -364,101 +276,89 @@ if ($action === 'upload') {
 
     $sectionnum = (int)$sectionrec->section;
 
-    // Build moduleinfo for create_module().
-    $moduleinfo = new stdClass();
-    $moduleinfo->modulename          = 'quiz';
-    $moduleinfo->course              = $courseid;
-    $moduleinfo->section             = $sectionnum;
-    $moduleinfo->visible             = 1;
-    $moduleinfo->visibleoncoursepage = 1;
-    $moduleinfo->name                = $quizname;
-    $moduleinfo->intro               = '';
-    $moduleinfo->introformat         = FORMAT_HTML;
+    // ===== 1) Insert into mdl_quiz directly =====
+    $now  = time();
+    $quiz = new stdClass();
+    $quiz->course      = $courseid;
+    $quiz->name        = $quizname;
+    $quiz->intro       = '';
+    $quiz->introformat = FORMAT_HTML;
 
-    // ✅ REQUIRED by create_module / mod_form:
-    $moduleinfo->introeditor = [
-        'text'   => '',
-        'format' => FORMAT_HTML,
-        'itemid' => 0,
-    ];
+    // Access control
+    $quiz->password    = '';  // IMPORTANT: NOT NULL
 
-    // Basic quiz fields.
-    $moduleinfo->timeopen        = 0;
-    $moduleinfo->timeclose       = 0;
-    $moduleinfo->timelimit       = $timelimitminutes * 60;
-    $moduleinfo->overduehandling = 'autoabandon';
-    $moduleinfo->graceperiod     = 0;
-    $moduleinfo->preferredbehaviour = 'deferredfeedback';
-    $moduleinfo->attempts        = 0;   // unlimited
-    $moduleinfo->shuffleanswers  = 1;
-    $moduleinfo->sumgrades       = $numquestions * $marksperquestion;
-    $moduleinfo->grade           = $moduleinfo->sumgrades;
-    $moduleinfo->password     = ''; // for direct DB field safety
+    // Timing / behaviour / grades
+    $quiz->timeopen    = 0;
+    $quiz->timeclose   = 0;
+    $quiz->timelimit   = $timelimitminutes > 0 ? $timelimitminutes * 60 : 0;
+    $quiz->overduehandling    = 'autoabandon';
+    $quiz->graceperiod        = 0;
+    $quiz->preferredbehaviour = 'deferredfeedback';
+    $quiz->attempts           = 0;
+    $quiz->shuffleanswers     = 1;
+    $quiz->shufflequestions   = 0;
+    $quiz->grade              = count($questions) * $marksperquestion;
+    $quiz->sumgrades          = 0;
 
-    $now = time();
-    $moduleinfo->timecreated     = $now;
-    $moduleinfo->timemodified    = $now;
+    // Review options – set to safe default (no review after attempt)
+    $quiz->reviewattempt          = 0;
+    $quiz->reviewcorrectness      = 0;
+    $quiz->reviewmaxmarks         = 0;
+    $quiz->reviewmarks            = 0;
+    $quiz->reviewspecificfeedback = 0;
+    $quiz->reviewgeneralfeedback  = 0;
+    $quiz->reviewrightanswer      = 0;
+    $quiz->reviewoverallfeedback  = 0;
 
-    // Review options – basic sensible default (during review after attempt close).
-    $moduleinfo->reviewattempt          = 0x10000; // 65536
-    $moduleinfo->reviewcorrectness      = 0;
-    $moduleinfo->reviewmaxmarks         = 0;
-    $moduleinfo->reviewmarks            = 0;
-    $moduleinfo->reviewspecificfeedback = 0;
-    $moduleinfo->reviewgeneralfeedback  = 0;
-    $moduleinfo->reviewrightanswer      = 0;
-    $moduleinfo->reviewoverallfeedback  = 0;
+    $quiz->timecreated  = $now;
+    $quiz->timemodified = $now;
 
-    // Actually create the quiz module.
-    $cmid = create_module($moduleinfo);
-    if (is_object($cmid)) {
-        // Some Moodle versions return cm object.
-        $cm = $cmid;
-        $cmid = $cm->id;
-    } else {
-        $cm = get_coursemodule_from_id('quiz', $cmid, $courseid, false, MUST_EXIST);
-    }
+    // Insert quiz row
+    $quizid = $DB->insert_record('quiz', $quiz);
 
-    $quiz = $DB->get_record('quiz', ['id' => $cm->instance], '*', MUST_EXIST);
+    // ===== 2) Create course module for this quiz =====
+    // Get module id for 'quiz'
+    $moduleid = $DB->get_field('modules', 'id', ['name' => 'quiz'], MUST_EXIST);
 
-    // Now create each MCQ in the question bank and add to quiz.
-    foreach ($questions as $q) {
-        if (!is_array($q)) {
-            continue;
-        }
-        if (empty($q['questiontext']) || empty($q['options']) || !is_array($q['options'])) {
-            continue;
-        }
-        // Safety: ensure exactly 4 options.
-        if (count($q['options']) !== 4) {
-            continue;
-        }
+    require_once($CFG->dirroot . '/course/lib.php');
 
-        local_automation_quiz_create_mcq_and_add_to_quiz(
-            $quiz,
-            $context,
-            $q,
-            $marksperquestion
-        );
-    }
+    $cm = new stdClass();
+    $cm->course      = $courseid;
+    $cm->module      = $moduleid;
+    $cm->instance    = $quizid;
+    $cm->section     = $sectionnum;
+    $cm->visible     = 1;
+    $cm->visibleoncoursepage = 1;
+    $cmid = add_course_module($cm);
 
-    // Update quiz sumgrades just in case.
-    quiz_update_sumgrades($quiz);
+    // Put it into the section
+    course_add_cm_to_section($courseid, $cmid, $sectionnum);
 
-    $quizurl = (new moodle_url('/mod/quiz/view.php', ['id' => $cmid]))->out(false);
+    // Rebuild cache
+    rebuild_course_cache($courseid, true);
+
+    // Build URLs
+    $editurl     = (new moodle_url('/mod/quiz/edit.php', ['cmid' => $cmid]))->out(false);
+    $settingsurl = (new moodle_url('/course/modedit.php', ['update' => $cmid, 'return' => 1]))->out(false);
+    $viewurl     = (new moodle_url('/mod/quiz/view.php', ['id' => $cmid]))->out(false);
 
     echo json_encode([
-        'success'   => true,
-        'message'   => 'Quiz created and questions added.',
-        'quizid'    => $quiz->id,
-        'cmid'      => $cmid,
-        'viewurl'   => $quizurl,
+        'success'      => true,
+        'message'      => 'Quiz created successfully. You can now edit questions and settings.',
+        'courseid'     => $courseid,
+        'sectionid'    => $sectionid,
+        'cmid'         => $cmid,
+        'quizid'       => $quizid,
+        'editurl'      => $editurl,
+        'settingsurl'  => $settingsurl,
+        'viewurl'      => $viewurl,
     ]);
     exit;
 }
 else if ($action !== 'generate') {
     local_automation_quiz_error('Unknown action: ' . $action);
 }
+
 
 if ($courseid <= 0) {
     local_automation_quiz_error('Please select a course.');
@@ -599,33 +499,27 @@ if (!empty($result['error'])) {
 
 $content = local_automation_quiz_safe_utf8($result['reply'] ?? '');
 
-if ($content === '') {
-    local_automation_quiz_error('Empty response from model.');
-}
-
-// Strip UTF-8 BOM if present.
-$content = preg_replace('/^\xEF\xBB\xBF/', '', $content);
-
-// If there is any junk before/after, extract the first {...} block.
-if (preg_match('/\{[\s\S]*\}/', $content, $m)) {
-    $jsonstr = $m[0];
-} else {
-    $jsonstr = $content;
-}
-
-// Remove control chars that JSON does not like (keep tab, CR, LF).
-$jsonstr = preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F]/', '', $jsonstr);
-
-// Decode once, no fancy logic.
-$decoded = json_decode($jsonstr, true);
-
+// Try JSON decode directly.
+$decoded = json_decode($content, true);
 if (!is_array($decoded) || !isset($decoded['questions']) || !is_array($decoded['questions'])) {
-    local_automation_quiz_error(
-        'Model did not return valid questions JSON.',
-        ['raw' => local_automation_quiz_shorten($jsonstr, 1000)]
-    );
+    // Model might have wrapped JSON in fences or added text.
+    if (preg_match('/\{.*\}/s', $content, $m)) {
+        $decoded2 = json_decode($m[0], true);
+        if (is_array($decoded2) && isset($decoded2['questions']) && is_array($decoded2['questions'])) {
+            $decoded = $decoded2;
+        } else {
+            local_automation_quiz_error(
+                'Model did not return valid questions JSON.',
+                ['raw' => local_automation_quiz_shorten($content, 1000)]
+            );
+        }
+    } else {
+        local_automation_quiz_error(
+            'Model did not return valid questions JSON.',
+            ['raw' => local_automation_quiz_shorten($content, 1000)]
+        );
+    }
 }
-
 
 /* ===================== Success ===================== */
 

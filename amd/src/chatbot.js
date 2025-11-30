@@ -92,6 +92,27 @@ define([
     function handleSend() {
         const input = $('#chatbot-input');
         const text = input.val().trim();
+        
+        // QB mode uses its own endpoint (qb_ajax.php), not chatbot_endpoint.php
+        if (currentMode === 'qb' && handlers.qb && typeof handlers.qb.generate === 'function') {
+            const instructions = text; // can be empty string
+
+            // Only show a user bubble if they actually typed something
+            if (instructions) {
+                appendMessage(escapeHtml(instructions), 'user');
+            }
+        
+            input.val('');
+            handlers.qb.generate(text, {
+                appendMessage,
+                scrollMessagesToBottom,
+                showConfirmButton,   // not used by QB now, but available
+                clearConfirmButton,
+                escapeHtml
+            });
+            return;
+        }
+
         if (!text) {
             return;
         }
@@ -173,8 +194,24 @@ define([
         }[currentMode];
         $('.chat-header span').text(headerText);
 
+        // Mode-specific placeholder
+        const $input = $('#chatbot-input');
+        if (currentMode === 'qb') {
+            $input.attr('placeholder', 'Type preferences for this question bank (optional)…');
+        } else if (currentMode === 'quiz') {
+            $input.attr('placeholder', 'Describe the quiz you want to generate…');
+        } else {
+            // Assistant default
+            $input.attr('placeholder', 'Type your message…');
+        }
+
         clearConfirmButton();
         loadHistory();
+
+        const handler = handlers[currentMode];
+        if (handler && typeof handler.onModeActivated === 'function') {
+            handler.onModeActivated();
+        }
     }
 
     // ===== Event binding =====
@@ -190,6 +227,14 @@ define([
 
         $('#chatbot-send-btn').on('click', handleSend);
 
+        // Auto-resize input like a chat textarea
+        const $input = $('#chatbot-input');
+        $input.on('input', function() {
+            const maxHeight = 150; // px – grows up to this height
+            this.style.height = 'auto';
+            this.style.height = Math.min(this.scrollHeight, maxHeight) + 'px';
+        });
+
         $('#chatbot-input').on('keypress', function(e) {
             if (e.key === 'Enter') {
                 e.preventDefault();
@@ -204,6 +249,23 @@ define([
     }
 
     // ===== Init =====
+    // function init() {
+    //     if (!document.getElementById('chatbot-style')) {
+    //         $('head').append(
+    //             '<link id="chatbot-style" rel="stylesheet" href="' +
+    //             M.cfg.wwwroot +
+    //             '/local/automation/style/chatbot.css">'
+    //         );
+    //     }
+
+    //     Templates.render('local_automation/chatbot', {})
+    //         .then(html => {
+    //             $('body').append(html);
+    //             bindEvents();
+    //             loadHistory();
+    //         })
+    //         .catch(err => console.error('Chatbot template load failed:', err));
+    // }
     function init() {
         if (!document.getElementById('chatbot-style')) {
             $('head').append(
@@ -216,11 +278,39 @@ define([
         Templates.render('local_automation/chatbot', {})
             .then(html => {
                 $('body').append(html);
+
+                // 🔥 Force modal sizing so we can SEE it changed
+                const $modal = $('#ai-chatbot-modal');
+                $modal.css({
+                    width: '720px',
+                    maxWidth: '90vw',
+                    height: '80vh',
+                    maxHeight: '80vh'
+                });
+
+                // Slightly smaller bubbles
+                $('#chatbot-messages').css({
+                    fontSize: '0.85rem',
+                    lineHeight: '1.4'
+                });
+                $('#chatbot-messages .message').css({
+                    fontSize: '0.85rem',
+                    lineHeight: '1.5',
+                    padding: '6px 10px'
+                });
+                $('#chatbot-input').css({
+                    fontSize: '0.85rem',
+                    minHeight: '40px',
+                    maxHeight: '150px',
+                    resize: 'none'
+                });
+
                 bindEvents();
                 loadHistory();
             })
             .catch(err => console.error('Chatbot template load failed:', err));
     }
+
 
     return { init: init };
 });

@@ -41,6 +41,9 @@ define(['jquery'], function($) {
         lastResult = null;
 
         $('#qb-panel').remove();
+        $('#qb-controls-fab').remove();
+        $('#chatbot-messages').off('.qb');
+
         $('#chatbot-input').prop('disabled', false);
         $('#chatbot-send-btn').prop('disabled', false).text('Send');
     }
@@ -64,6 +67,139 @@ define(['jquery'], function($) {
             .replace(/>/g, '&gt;')
             .replace(/"/g, '&quot;')
             .replace(/'/g, '&#039;');
+    }
+
+    // --- INLINE STYLING FOR QB PANEL (so we ignore theme CSS) ---
+
+    function applyQbInlineStyles() {
+        const $panel = $('#qb-panel');
+        if (!$panel.length) return;
+
+        // Keep panel pinned at top of messages area
+        $panel.css({
+            zIndex: 10,
+            background: '#ffffff',
+            padding: '8px 10px 10px 10px',
+            borderBottom: '1px solid #e0e0e0',
+            boxShadow: '0 2px 4px rgba(0,0,0,0.04)'
+        });
+
+        $('.qb-row', $panel).css({
+            marginBottom: '6px',
+            display: 'flex',
+            flexWrap: 'wrap',
+            alignItems: 'center',
+            gap: '6px'
+        });
+
+        $('#qb-panel label').css({
+            fontSize: '0.8rem'
+        });
+
+        // Modern select / number inputs
+        $('#qb-course-select, #qb-ia-2, #qb-ia-5, #qb-ese-5, #qb-ese-10').css({
+            padding: '4px 8px',
+            borderRadius: '6px',
+            border: '1px solid #d0d0d0',
+            background: '#fafafa',
+            fontSize: '0.8rem'
+        });
+
+        // Question type radios as pills
+        $('.qb-qtype-group', $panel).css({
+            display: 'flex',
+            gap: '12px',
+            fontSize: '0.8rem'
+        });
+
+        $('.qb-qtype-group label', $panel).css({
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            padding: '4px 8px',
+            borderRadius: '999px',
+            border: '1px solid #e0e0e0',
+            cursor: 'pointer',
+            background: '#ffffff'
+        });
+
+        $('.qb-qtype-group input[type="radio"]', $panel).css({
+            accentColor: '#1976d2'
+        });
+
+        // File explorer tree box
+        $('#qb-files-tree').css({
+            width: '100%',
+            maxHeight: '220px',
+            overflow: 'auto',
+            padding: '6px 8px',
+            borderRadius: '8px',
+            border: '1px solid #e0e0e0',
+            background: '#fafafa',
+            fontSize: '0.8rem'
+        });
+
+        $('.qb-section-title').css({
+            fontWeight: 600,
+            marginBottom: '3px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            color: '#37474f'
+        });
+
+        $('.qb-folder').css({
+            marginLeft: '8px'
+        });
+
+        $('.qb-folder > summary').css({
+            listStyle: 'none',
+            cursor: 'pointer',
+            padding: '3px 6px',
+            borderRadius: '4px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px'
+        });
+
+        $('.qb-tree-level').css({
+            marginLeft: '14px',
+            paddingLeft: '4px',
+            borderLeft: '1px dashed #d0d0d0'
+        });
+
+        $('.qb-file label').css({
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            padding: '2px 6px',
+            borderRadius: '4px',
+            cursor: 'pointer'
+        });
+
+        $('.qb-file input[type="checkbox"]').css({
+            accentColor: '#1976d2'
+        });
+
+        // Hint box
+        $('.qb-hint').css({
+            flexDirection: 'column',
+            alignItems: 'flex-start',
+            padding: '6px 8px',
+            borderRadius: '6px',
+            background: '#f5f5f5'
+        });
+
+        $('.qb-hint-title').css({
+            fontWeight: 600,
+            fontSize: '0.8rem',
+            marginBottom: '2px'
+        });
+
+        $('.qb-hint-sub').css({
+            fontSize: '0.75rem',
+            color: '#555'
+        });
     }
 
     // --- UI PANEL CREATION ---
@@ -100,11 +236,11 @@ define(['jquery'], function($) {
                     <div class="qb-qtype-group">
                         <label>
                             <input type="radio" name="qb-qtype" value="IA">
-                            IA Type (2 marks &amp; 5 marks)
+                            <span>IA Type (2 marks &amp; 5 marks)</span>
                         </label>
                         <label>
                             <input type="radio" name="qb-qtype" value="ESE">
-                            ESE Type (5 marks &amp; 10 marks)
+                            <span>ESE Type (5 marks &amp; 10 marks)</span>
                         </label>
                     </div>
                 </div>
@@ -151,6 +287,19 @@ define(['jquery'], function($) {
         `;
 
         $('#chatbot-messages').prepend(html);
+
+        // Add floating "Controls ↑" button once per chat window (inside scroll area)
+        if (!$('#qb-controls-fab').length) {
+            $('.chat-messages').append(`
+                <button id="qb-controls-fab" title="Back to controls">
+                    ▲ Controls
+                </button>
+            `);
+        }
+
+
+        // Apply inline styles so Moodle theme can't override them
+        applyQbInlineStyles();
 
         bindPanelEvents();
         updateGenerateState();
@@ -259,7 +408,6 @@ define(['jquery'], function($) {
                 return;
             }
 
-            // Build a path-based tree structure on JS side
             const treeRoot = buildTreeFromFiles(section, files);
 
             html += `
@@ -280,6 +428,9 @@ define(['jquery'], function($) {
         }
 
         $('#qb-files-tree').html(html);
+
+        // Re-apply tree related styles now that new nodes exist
+        applyQbInlineStyles();
         updateGenerateState();
     }
 
@@ -287,7 +438,7 @@ define(['jquery'], function($) {
         const root = {
             type: 'root',
             name: section.name || 'Section',
-            children: {} // key -> node
+            children: {}
         };
 
         files.forEach(file => {
@@ -305,7 +456,6 @@ define(['jquery'], function($) {
             const parts = path.split('/').filter(Boolean);
             let node = root;
 
-            // All but last are folders
             for (let i = 0; i < parts.length - 1; i++) {
                 const folderName = parts[i];
                 if (!node.children[folderName]) {
@@ -319,8 +469,6 @@ define(['jquery'], function($) {
             }
 
             const filename = parts[parts.length - 1] || name;
-
-            // Make the key unique so files with same name don't overwrite each other
             const key = filename + '__' + fileid;
 
             node.children[key] = {
@@ -392,13 +540,11 @@ define(['jquery'], function($) {
         const courseidVal = $('#qb-course-select').val();
         selectedCourseId = courseidVal ? parseInt(courseidVal, 10) : null;
 
-        // Counts reading
         counts.ia2marks   = parseInt($('#qb-ia-2').val() || '0', 10);
         counts.ia5marks   = parseInt($('#qb-ia-5').val() || '0', 10);
         counts.ese5marks  = parseInt($('#qb-ese-5').val() || '0', 10);
         counts.ese10marks = parseInt($('#qb-ese-10').val() || '0', 10);
 
-        // Question type
         const qtype = $('input[name="qb-qtype"]:checked').val();
         questionType = qtype || null;
 
@@ -408,7 +554,6 @@ define(['jquery'], function($) {
         let hasCounts = false;
 
         if (questionType === 'IA') {
-            // Default 5 & 5 IF both 0
             if (counts.ia2marks === 0 && counts.ia5marks === 0) {
                 counts.ia2marks = 5;
                 counts.ia5marks = 5;
@@ -417,7 +562,6 @@ define(['jquery'], function($) {
             }
             hasCounts = (counts.ia2marks > 0 || counts.ia5marks > 0);
         } else if (questionType === 'ESE') {
-            // Default 5 & 5 IF both 0
             if (counts.ese5marks === 0 && counts.ese10marks === 0) {
                 counts.ese5marks = 5;
                 counts.ese10marks = 5;
@@ -436,6 +580,25 @@ define(['jquery'], function($) {
     // --- BIND EVENTS ---
 
     function bindPanelEvents() {
+        const $messages = $('.chat-messages');
+
+        // Show/hide FAB depending on scroll position
+        $messages.on('scroll.qb', function() {
+            const $fab = $('#qb-controls-fab');
+            if (!$fab.length) return;
+
+            if (this.scrollTop > 150) {
+                $fab.fadeIn(150);
+            } else {
+                $fab.fadeOut(150);
+            }
+        });
+
+        // Scroll back to top (controls) when FAB clicked
+        $messages.on('click.qb', '#qb-controls-fab', function() {
+            $messages.animate({ scrollTop: 0 }, 200);
+        });
+
         $('#qb-course-select').on('change', function() {
             const cid = $(this).val();
             selectedCourseId = cid ? parseInt(cid, 10) : null;
@@ -469,17 +632,14 @@ define(['jquery'], function($) {
             updateGenerateState();
         });
 
-        // File checkbox changes (delegated)
         $('#chatbot-messages').on('change', '.qb-file-checkbox', function() {
             recomputeSelectedFiles();
-            // If not all files are selected, untick "select all"
             const totalFiles = $('.qb-file-checkbox').length;
             const totalSelected = $('.qb-file-checkbox:checked').length;
             $('#qb-use-all-resources').prop('checked', totalFiles > 0 && totalFiles === totalSelected);
             updateGenerateState();
         });
 
-        // Download/Upload buttons (delegated)
         $('#chatbot-messages')
             .on('click', '.qb-download-btn', function() {
                 const url = $(this).data('downloadUrl');
@@ -492,13 +652,13 @@ define(['jquery'], function($) {
                 const fileid = $btn.data('fileid');
                 const courseid = $btn.data('courseid');
                 const qtype = $btn.data('questiontype') || questionType || 'IA';
-                        
+
                 if (!fileid || !courseid || $btn.prop('disabled')) {
                     return;
                 }
-            
+
                 $btn.prop('disabled', true).text('Uploading...');
-            
+
                 $.ajax({
                     url: M.cfg.wwwroot + '/local/automation/qb_ajax.php',
                     method: 'POST',
@@ -526,7 +686,6 @@ define(['jquery'], function($) {
                     }
                 });
             });
-
     }
 
     // --- MODE ACTIVATION ---
@@ -535,10 +694,8 @@ define(['jquery'], function($) {
         ensurePanel();
         $('#chatbot-send-btn').text('Generate');
         editMode = false;
-        // We keep lastResult so edits across tab switches are possible if desired.
         updateGenerateState();
     }
-
 
     // --- CORE: GENERATE / EDIT ---
 
@@ -588,7 +745,7 @@ define(['jquery'], function($) {
         const payload = {
             courseid: selectedCourseId,
             selectedfiles: selectedFileIds,
-            filemeta: fileMetaById,  // so backend can optionally use names/paths
+            filemeta: fileMetaById,
             questiontype: questionType,
             counts: counts,
             instructions: instructions || '',

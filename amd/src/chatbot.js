@@ -271,7 +271,7 @@ define([
             $('head').append(
                 '<link id="chatbot-style" rel="stylesheet" href="' +
                 M.cfg.wwwroot +
-                '/local/automation/style/chatbot.css">'
+                '/local/automation/style/chatbot.css?v=qbui2">'
             );
         }
 

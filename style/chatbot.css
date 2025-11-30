@@ -20,7 +20,7 @@
     position: fixed;
     bottom: 70px;
     right: 20px;
-    width: 600px;          /* wider */
+    width: 500px;          /* wider */
     max-width: 90vw;
     height: 80vh;          /* taller */
     max-height: 80vh;
@@ -33,7 +33,6 @@
     overflow: hidden;
 }
 
-
 /* Header */
 .chat-header {
     background: #b026ff;
@@ -45,6 +44,10 @@
     align-items: center;
 }
 
+.chat-header span {
+    font-size: 0.9rem;
+}
+
 #chatbot-close-btn {
     background: transparent;
     color: white;
@@ -54,22 +57,26 @@
 }
 
 /* Messages area */
-.chat-messages {
+.chat-messages,
+#chatbot-messages {
     flex: 1;
     padding: 10px;
     overflow-y: auto;
-    font-size: 0.85rem;
-    line-height: 1.4;
+    font-size: 0.78rem !important;
+    line-height: 1.35 !important;
+    position: relative;  /* needed for FAB positioning */
 }
 
-.message {
-    padding: 6px 10px;
-    margin-bottom: 6px;
-    border-radius: 12px;
-    max-width: 75%;
+/* Chat bubbles */
+.message,
+#chatbot-messages .message {
+    padding: 4px 8px !important;
+    margin-bottom: 5px !important;
+    border-radius: 10px !important;
+    max-width: 75% !important;
     word-wrap: break-word;
-    font-size: 0.85rem;
-    line-height: 1.5;
+    font-size: 0.78rem !important;
+    line-height: 1.35 !important;
 }
 
 .msg-user {
@@ -88,11 +95,22 @@
     gap: 6px;
 }
 
+/* Prompt input – auto-expand, no horizontal scroll */
 #chatbot-input {
     flex: 1;
-    padding: 8px;
     border-radius: 6px;
     border: 1px solid #aaa;
+    font-size: 0.8rem !important;
+    padding: 6px !important;
+
+    resize: none;           /* JS handles vertical resizing */
+    min-height: 40px;
+    max-height: 150px;      /* safety cap */
+
+    overflow-y: auto;
+    overflow-x: hidden;
+    white-space: pre-wrap;
+    word-wrap: break-word;
 }
 
 #chatbot-send-btn {
@@ -114,11 +132,11 @@
 
 .chat-tab {
     flex: 1;
-    padding: 8px 0;
+    font-size: 0.8rem !important;
+    padding: 6px 0 !important;
     background: none;
     border: none;
     cursor: pointer;
-    font-size: 14px;
     color: #555;
     transition: background 0.2s, color 0.2s;
 }
@@ -133,6 +151,7 @@
     font-weight: bold;
 }
 
+/* Confirm button area */
 #chatbot-action-area {
     padding: 10px;
     text-align: center;
@@ -162,50 +181,41 @@
     margin-top: 5px;
 }
 
-/* === Chat window sizing & general typography === */
-
+/* Overall chat window (if used by template) */
 #ai-chatbot-modal .chatbot-window {
-    /* Wider + taller overall */
     width: 720px;
     max-width: 90vw;
     height: 80vh;
     max-height: 80vh;
 }
 
-/* Make messages area fill more space */
-#chatbot-messages {
-    font-size: 0.85rem;
-    line-height: 1.4;
+/* === QB panel + controls === */
+
+/* Floating "Controls ↑" button INSIDE chat area – top center */
+#qb-controls-fab {
+    position: absolute !important;
+    top: 6px !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    z-index: 20 !important;
+    display: none !important; /* shown only when scrolled via JS */
+
+    background: #1976d2 !important;
+    color: #fff !important;
+    border: none !important;
+    border-radius: 999px !important;
+    padding: 6px 12px !important;
+    font-size: 0.75rem !important;
+    cursor: pointer !important;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.25) !important;
 }
 
-/* Smaller, neater bubbles */
-#chatbot-messages .message {
-    font-size: 0.85rem;
-    line-height: 1.5;
-    padding: 6px 10px;
+#qb-controls-fab:hover {
+    background: #0d47a1 !important;
 }
 
-/* Input area + tabs slightly smaller text */
-#chatbot-input {
-    font-size: 0.85rem;
-    resize: none;              /* JS handles resizing */
-    min-height: 40px;
-    max-height: 150px;         /* safety cap */
-}
-
-.chat-tab {
-    font-size: 0.85rem;
-}
-
-.chat-header span {
-    font-size: 0.9rem;
-}
-
-/* === QB panel: keep at top & modern look === */
 
 #qb-panel {
-    position: sticky;          /* sticks to top of scroll area */
-    top: 0;
     z-index: 10;
     background: #ffffff;
     padding: 8px 10px 10px 10px;
@@ -279,14 +289,7 @@
     color: #0d47a1;
 }
 
-/* Simple visual: highlight selected radio container */
-.qb-qtype-group input[type="radio"]:checked + span,
-.qb-qtype-group input[type="radio"]:checked ~ span {
-    /* note: actual styling handled via JS/CSS combo; keep minimal here */
-}
-
 /* === QB hint text === */
-
 .qb-hint {
     flex-direction: column;
     align-items: flex-start;
@@ -307,7 +310,6 @@
 }
 
 /* === File explorer-style tree === */
-
 .qb-files-tree {
     width: 100%;
     max-height: 220px;
@@ -386,21 +388,22 @@
 /* Download / upload buttons inside QB result box */
 .automation-box .qb-download-btn,
 .automation-box .qb-upload-btn {
-    margin-top: 6px;
-    margin-right: 6px;
-    padding: 4px 10px;
-    border-radius: 999px;
-    border: 1px solid #1976d2;
-    background: #1976d2;
-    color: #fff;
-    font-size: 0.8rem;
-    cursor: pointer;
+    margin-top: 6px !important;
+    margin-right: 6px !important;
+    padding: 6px 14px !important;
+    border-radius: 8px !important;
+    border: 1px solid #1976d2 !important;
+    background: #1976d2 !important;
+    color: #fff !important;
+    font-size: 0.78rem !important;
+    cursor: pointer !important;
+    display: inline-block !important;
 }
 
 .automation-box .qb-download-btn:hover,
 .automation-box .qb-upload-btn:hover {
-    background: #0d47a1;
-    border-color: #0d47a1;
+    background: #0d47a1 !important;
+    border-color: #0d47a1 !important;
 }
 
 .qb-edit-hint {

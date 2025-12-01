@@ -300,6 +300,8 @@ function local_automation_quiz_create_mcq_and_add_to_quiz(
     $question->createdby  = $USER->id;
     $question->modifiedby = $USER->id;
 
+    $question->status     = 'ready';
+
     $qtype         = question_bank::get_qtype('multichoice');
     // Official signature: save_question($questionfromdb, $formdata)
     $savedquestion = $qtype->save_question($question, $fromform);
@@ -308,7 +310,7 @@ function local_automation_quiz_create_mcq_and_add_to_quiz(
     // ============================
     // 4) Attach to quiz
     // ============================
-    quiz_add_quiz_question($questionid, $quiz, 1, $marks);
+    quiz_add_quiz_question($questionid, $quiz, 0, $marks);
 
     return $questionid;
 }
@@ -485,7 +487,7 @@ if ($action === 'upload') {
 
     // Insert quiz row.
     $quizid   = $DB->insert_record('quiz', $quiz);
-    $quiz->id = $quizid; // IMPORTANT for quiz_add_quiz_question / quiz_update_sumgrades
+    $quiz = $DB->get_record('quiz', ['id' => $quizid], '*', MUST_EXIST);
 
     // =============================
     // 2) Create course module and put it in the section
@@ -505,7 +507,7 @@ if ($action === 'upload') {
 
     $cmid = add_course_module($cm);
     course_add_cm_to_section($courseid, $cmid, $sectionnum);
-    rebuild_course_cache($courseid, true);
+    // rebuild_course_cache($courseid, true);
 
     // =============================
     // 3) Create questions and attach them to this quiz
@@ -548,6 +550,10 @@ if ($action === 'upload') {
         // Recalculate quiz total marks.
         quiz_update_sumgrades($quiz);
 
+        // Force a clean one-page layout so pagelayout never has weird indexes.
+        // 0 = all questions on one page.
+        quiz_repaginate_questions($quiz->id, 0);
+
         // Make sure the quiz has a valid page layout (all questions on one page).
         if (function_exists('quiz_repaginate_questions')) {
             // 0 = all questions on a single page.
@@ -562,6 +568,8 @@ if ($action === 'upload') {
     $editurl     = (new moodle_url('/mod/quiz/edit.php', ['cmid' => $cmid]))->out(false);
     $settingsurl = (new moodle_url('/course/modedit.php', ['update' => $cmid, 'return' => 1]))->out(false);
     $viewurl     = (new moodle_url('/mod/quiz/view.php', ['id' => $cmid]))->out(false);
+
+    rebuild_course_cache($courseid, true);
 
     echo json_encode([
         'success'      => true,

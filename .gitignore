@@ -4,3 +4,5 @@ rag/venv/
 
 # Environment variables
 /rag/.env
+
+rag/__pycache__/

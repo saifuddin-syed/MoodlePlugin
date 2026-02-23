@@ -15,6 +15,7 @@ define(['jquery'], function($) {
         return $.ajax({
             url: M.cfg.wwwroot + '/local/automation/student_ajax.php',
             method: 'POST',
+            dataType: 'json',
             data: {
                 action: 'save_message',
                 courseid: config.currentcourseid,
@@ -71,6 +72,7 @@ define(['jquery'], function($) {
         return $.ajax({
             url: M.cfg.wwwroot + '/local/automation/student_ajax.php',
             method: 'POST',
+            dataType: 'json',
             data: {
                 action: 'ask_rag',
                 courseid: config.currentcourseid,

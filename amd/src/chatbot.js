@@ -144,7 +144,7 @@ define([
             // appendMessage(escapeHtml(text), 'user', false);
             input.val('');
 
-            Student.saveMessageToDB(text, 'user').then(() => {
+            Student.saveMessageToDB(text, 'user').then(function(res) {
                 if (typeof res === 'string') {
                     res = JSON.parse(res);
                 }

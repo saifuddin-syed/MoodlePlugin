@@ -165,12 +165,14 @@ define(['jquery'], function($) {
                             }),
                             success: function(data) {
                             
-                                if (!data.ok) {
-                                    quizContainer.html("<p>Error generating quiz.</p>");
+                                console.log("Quiz API response:", data);
+
+                                if (!data || data.ok !== true) {
+                                    quizContainer.html("<p>" + (data.error || "Quiz generation failed.") + "</p>");
                                     return;
                                 }
                             
-                                if (!data.questions || data.questions.length === 0) {
+                                if (!Array.isArray(data.questions) || data.questions.length === 0) {
                                     quizContainer.html("<p>No questions generated.</p>");
                                     return;
                                 }

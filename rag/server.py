@@ -45,12 +45,6 @@ client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 with open("demo_topics.json", "r", encoding="utf-8") as f:
     demo_topics = json.load(f)
 
-# topic_chunk_map structure:
-# {
-#   "UNIT 1": {
-#       "1.1": [chunk_id1, chunk_id2, ...]
-#   }
-# }
 topic_chunk_map = {}
 
 for unit, sections in demo_topics.items():
@@ -71,8 +65,12 @@ for unit, sections in demo_topics.items():
 # REQUEST SCHEMAS
 # ------------------------
 
+from typing import List, Dict
+from pydantic import Field
+
 class QuestionRequest(BaseModel):
     question: str
+    history: List[Dict[str, str]] = Field(default_factory=list)
 
 class QuizRequest(BaseModel):
     units: list[str] = []
@@ -89,60 +87,63 @@ class QuizRequest(BaseModel):
 def ask_question(data: QuestionRequest):
 
     question = data.question
+    history = data.history[-6:]  # last 6 turns only
 
-    q_embedding = model.encode([question])
-    _, indices = index.search(q_embedding, 7)
+    # === Retrieve RAG Context ===
+    q_embedding = model.encode([question], normalize_embeddings=True)
+    scores, indices = index.search(q_embedding, 6)
+
+    best_score = scores[0][0]
+
+    if best_score < 0.15:
+        return {
+            "ok": True,
+            "answer": "This question appears to be outside the scope of this course."
+        }
 
     retrieved = [chunks[i] for i in indices[0]]
     context = "\n\n".join(retrieved)
 
-    prompt = f"""
-You are a university professor teaching this course.
+    # === Build Conversation ===
+    messages = [
+        {
+            "role": "system",
+            "content": (
+                "You are an interactive university tutor.\n\n"
+                "Teaching style rules:\n"
+                "1. Keep responses SHORT (4–8 sentences max).\n"
+                "2. Explain intuitively, not like a textbook.\n"
+                "3. Use simple language.\n"
+                "4. Give at most ONE small example.\n"
+                "5. Always end with ONE short follow-up question.\n"
+                "6. Do NOT over-explain.\n"
+                "7. Do NOT give long bullet lists.\n"
+                "8. Encourage the student to think.\n"
+                "9. Never mention documents or syllabus.\n"
+                "10. If something asked is completely irrelevant to the topic, just answer that, This is out of scope.\n"
+            )
+        },
+        {
+            "role": "system",
+            "content": f"Relevant course material:\n{context}"
+        }
+    ]
 
-Your behaviour rules:
+    # Add previous chat
+    for msg in history:
+        messages.append(msg)
 
-1. First determine whether the student's question is:
-   A) Directly covered in the course material
-   B) Closely related to course topics but not explicitly covered
-   C) Completely unrelated to the course
-
-2. If A:
-   - Answer clearly using the course material.
-   - Explain conceptually.
-   - Structure answer in small readable paragraphs.
-   - End with 1 short reflective question.
-
-3. If B:
-   - Briefly explain the concept using general academic knowledge.
-   - Clearly connect it back to relevant course topics.
-   - Do NOT mention “context” or “documents”.
-
-4. If C:
-   - Respond with:
-     "This question appears to be outside the scope of the current course syllabus."
-   - Do not elaborate further.
-
-5. Never mention that you are using provided material.
-6. Do not fabricate facts.
-7. Avoid document-structure questions (units, sections).
-
-Course Material:
-{context}
-
-Student Question:
-{question}
-
-Answer:
-"""
+    # Add current question
+    messages.append({
+        "role": "user",
+        "content": question
+    })
 
     response = client.chat.completions.create(
         model="llama-3.1-8b-instant",
-        messages=[
-            {"role": "system", "content": "Strict academic assistant"},
-            {"role": "user", "content": prompt}
-        ],
-        temperature=0.2,
-        max_tokens=700
+        messages=messages,
+        temperature=0.3,
+        max_tokens=300
     )
 
     return {
@@ -177,7 +178,8 @@ def get_topics():
 # ======================================================
 # GENERATE QUIZ (Unit-Level Selection)
 # ======================================================
-from typing import List, Dict, Optional
+from typing import Optional
+
 
 class QuizRequest(BaseModel):
     units: Optional[List[str]] = []
@@ -220,10 +222,13 @@ def generate_quiz(data: QuizRequest):
 
         for _ in range(num_questions):
 
-            chosen_ids = random.sample(candidate_list, min(3, len(candidate_list)))
+            chosen_ids = random.sample(candidate_list, min(5, len(candidate_list)))
             context = "\n\n".join([chunks[i] for i in chosen_ids])
-            if len(context.strip()) < 200:
-                return {"ok": False, "error": "Insufficient material for quiz generation."}
+            if len(candidate_ids) < 1:
+                return {
+                    "ok": False,
+                    "error": "No relevant material found for selected topics."
+                }
 
             prompt = f"""
 You are a university-level exam setter.

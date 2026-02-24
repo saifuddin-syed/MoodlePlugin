@@ -42,7 +42,7 @@ def expand_query(q):
 
 
 # -------- MAIN ASK FUNCTION --------
-def ask(question, k=10):
+def ask(question, k=20):
     expanded = expand_query(question)
 
     candidate_chunks = []
@@ -112,46 +112,12 @@ Question:
     return response.choices[0].message.content
 
 
-# if __name__ == "__main__":
-#     import argparse, json
-
-#     parser = argparse.ArgumentParser()
-#     parser.add_argument("--mode", choices=["ask","quiz"], required=True)
-#     parser.add_argument("--payload", required=True)
-#     args = parser.parse_args()
-
-#     payload = json.loads(args.payload)
-
-#     if args.mode == "ask":
-#         question = payload.get("question", "")
-#         answer = ask(question)
-#         print(json.dumps({"ok": True, "answer": answer}, ensure_ascii=False))
-
-#     elif args.mode == "quiz":
-#         topics = payload.get("topics", [])
-#         n = payload.get("n", 5)
-#         difficulty = payload.get("difficulty", "medium")
-
-#         # TODO: implement quiz generator later
-#         print(json.dumps({"ok": True, "quiz": []}, ensure_ascii=False))
-
+# -------- CLI ENTRY (for JS) --------
 if __name__ == "__main__":
-    import argparse
-    import json
-
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--question", required=True)
-    args = parser.parse_args()
-
-    question = args.question
+    question = sys.argv[1]
     answer = ask(question)
 
     print(json.dumps({
-        "ok": True,
+        "question": question,
         "answer": answer
-    }, ensure_ascii=False))
-
-# if __name__ == "__main__":
-#     import sys
-#     question = input("Enter question: ")
-#     print(json.dumps({"ok": True, "answer": ask(question)}))
+    }))

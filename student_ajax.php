@@ -72,30 +72,54 @@ switch ($action) {
 
         $question = required_param('question', PARAM_RAW);
 
-        $url = 'http://127.0.0.1:8000/ask';
+        // Fetch last 6 messages
+        $historyrecords = $DB->get_records(
+            'local_automation_student_chat',
+            ['studentid' => $USER->id, 'courseid' => $courseid],
+            'timecreated DESC',
+            'id, sender, message',
+            0,
+            6
+        );
+        $history = [];
 
-        $data = json_encode(['question' => $question]);
+        foreach (array_reverse($historyrecords) as $rec) {
+            $role = ($rec->sender === 'user') ? 'user' : 'assistant';
+            $history[] = [
+                "role" => $role,
+                "content" => $rec->message
+            ];
+        }
 
-        $options = [
-            'http' => [
-                'header'  => "Content-type: application/json\r\n",
-                'method'  => 'POST',
-                'content' => $data,
-                'timeout' => 30
-            ]
-        ];
+        $payload = json_encode([
+            "question" => $question,
+            "history" => $history
+        ]);
 
-        $context = stream_context_create($options);
-        $result = file_get_contents($url, false, $context);
+        $ch = curl_init('http://127.0.0.1:8000/ask');
 
-        if ($result === FALSE) {
-            echo json_encode(['ok' => false, 'error' => 'FastAPI server not reachable']);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+            'Content-Type: application/json'
+        ]);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
+
+        $result = curl_exec($ch);
+
+        if ($result === false) {
+            echo json_encode([
+                "ok" => false,
+                "error" => curl_error($ch)
+            ]);
+            curl_close($ch);
             break;
         }
 
+        curl_close($ch);
+
         echo $result;
         break;
-
     default:
         echo json_encode(['error' => 'Invalid action']);
 }

@@ -18,7 +18,7 @@ $topics = optional_param_array('topics', [], PARAM_TEXT);
 $quizData = json_decode($quizjson, true);
 
 if (!$quizData) {
-    print_error("Invalid quiz data.");
+    die("Invalid quiz data.");
 }
 
 // Store answer key in session

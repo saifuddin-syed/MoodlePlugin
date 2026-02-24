@@ -579,20 +579,47 @@ define([
 
             Student.initConfig(config);
 
-            $('#chatbot-action-area').html(
-                '<button id="take-mini-quiz-btn">Take Mini Quiz</button>'
-            );
-
-            // open full quiz page for now
-            $('#take-mini-quiz-btn').off('click').on('click', function() {
-                window.location.href =
-                    M.cfg.wwwroot + '/local/automation/student_quiz.php?courseid=' + config.currentcourseid;
+            // Make input area flex (ensures proper alignment)
+            $('.chat-input-area').css({
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px'
             });
 
-            // ensure history messages are escaped before appending
-            // Student.loadHistory(function(text, sender, timestamp) {
-            //     appendMessage(escapeHtml(text), sender, parseInt(timestamp), false);
-            // });
+            // Remove old action-area button
+            $('#chatbot-action-area').empty();
+
+            // Add Take Quiz icon button to LEFT of input
+            if (!$('#chatbot-take-quiz-btn').length) {
+                $('.chat-input-area').prepend(`
+                    <button id="chatbot-take-quiz-btn"
+                            type="button"
+                            title="Take Quiz"
+                            aria-label="Take Quiz">
+                        ✍️
+                    </button>
+                `);
+            }
+
+            // Keep SAME redirect logic as before
+            $('#chatbot-take-quiz-btn').off('click').on('click', function () {
+                window.location.href =
+                    M.cfg.wwwroot +
+                    '/local/automation/student_quiz.php?courseid=' +
+                    config.currentcourseid;
+            });
+
+            // Modify Send button styling + icon
+            $('#chatbot-send-btn')
+                .html('✉️')
+                .attr('title', 'Send Message')
+                .attr('aria-label', 'Send Message')
+                .css({
+                    borderRadius: '14px',
+                    padding: '6px 14px',
+                    fontSize: '18px'
+                });
+
             Student.loadHistory(appendMessage);
 
         } else {

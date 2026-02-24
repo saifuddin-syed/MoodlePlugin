@@ -27,42 +27,40 @@ $PAGE->requires->js_call_amd(
 echo $OUTPUT->header();
 ?>
 
-<h3>Generate Quiz</h3>
+<div class="quiz-page-wrapper">
+    <div class="quiz-card">
 
-<!-- <div>
-    <label>Select Units (max 3)</label><br>
-    <select id="unitContainer" multiple style="width:300px; height:120px;"></select>
-</div> -->
+        <h2>Generate Practice Quiz</h2>
 
-<div style="height:350px; overflow-y:auto; border:1px solid #ccc; padding:10px;">
-    <div id="unitContainer"></div>
+        <div class="quiz-controls">
+
+            <label><strong>Select Units & Sections</strong></label>
+            <div id="unitContainer"></div>
+
+            <div class="quiz-settings">
+                <div class="setting-block">
+                    <label>Number of Questions</label><br>
+                    <input type="number" id="questionCount" min="1" placeholder="Enter number">
+                </div>
+
+                <div class="setting-block">
+                    <label>Difficulty</label><br>
+                    <select id="difficulty">
+                        <option value="easy">Easy</option>
+                        <option value="medium">Medium</option>
+                        <option value="hard">Hard</option>
+                    </select>
+                </div>
+            </div>
+
+            <button id="generateQuizBtn">Generate Quiz</button>
+
+        </div>
+
+        <div id="quizContainer"></div>
+
+    </div>
 </div>
-
-<br>
-
-<div>
-    <label>Number of Questions</label><br>
-    <input type="number" id="questionCount" min="1" max="10" value="5">
-</div>
-
-<br>
-
-<div>
-    <label>Difficulty</label><br>
-    <select id="difficulty">
-        <option value="easy">Easy</option>
-        <option value="medium" selected>Medium</option>
-        <option value="hard">Hard</option>
-    </select>
-</div>
-
-<br>
-
-<button id="generateQuizBtn">Generate Quiz</button>
-
-<hr>
-
-<div id="quizContainer"></div>
 
 <?php
 echo $OUTPUT->footer();

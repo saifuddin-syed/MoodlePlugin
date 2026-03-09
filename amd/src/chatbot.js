@@ -457,56 +457,6 @@ define([
             $input.attr('placeholder', 'Type preferences for this question bank (optional)…');
         } else if (currentMode === 'quiz') {
             $input.attr('placeholder', 'Describe the quiz you want to generate…');
-        } else if (currentMode === 'analytics') {
-            // hide input area for analytics mode
-            const $inputArea = $('.chat-input-area');
-            $inputArea.hide();
-            $input.attr('placeholder', ''); // no placeholder
-
-            // Load analytics content
-            $('#chatbot-messages').html('<div>Loading students...</div>');
-
-            $.ajax({
-                url: M.cfg.wwwroot + '/local/automation/analytics_ajax.php',
-                method: 'POST',
-                data: {
-                    action: 'get_students',
-                    courseid: pageConfig.currentcourseid,
-                    sesskey: M.cfg.sesskey
-                },
-                success: function(students) {
-                    let html = `
-                        <div class="analytics-student-list">
-                            <h4>Enrolled Students</h4>
-                    `;
-                    students.forEach(s => {
-                        const name = escapeHtml((s.firstname || '') + ' ' + (s.lastname || ''));
-                        html += `
-                            <div class="analytics-student" data-studentid="${escapeHtml(String(s.id))}">
-                                ${name}
-                            </div>
-                        `;
-                    });
-
-                    html += `</div>`;
-
-                    $('#chatbot-messages').html(html);
-
-                    // delegated click handler (safer)
-                    $('#chatbot-messages').off('click', '.analytics-student');
-                    $('#chatbot-messages').on('click', '.analytics-student', function() {
-                        const studentid = $(this).data('studentid');
-                        const studentName = $(this).text();
-                        loadStudentDetails(studentid, studentName);
-                    });
-                },
-                error: function(xhr) {
-                    $('#chatbot-messages').html('<div>Error fetching students.</div>');
-                }
-            });
-
-            clearConfirmButton();
-            return;
         } else {
             // Assistant default
             $input.attr('placeholder', 'Type your message…');

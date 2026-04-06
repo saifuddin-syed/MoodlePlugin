@@ -220,6 +220,10 @@ fetch(M.cfg.wwwroot + "/local/automation/analytics_ajax.php",{
             </div>`;
         });
     }
+    html += `
+    <h4>Student Chats</h4>
+    <div id="chatList" style="margin-top:20px;"></div>
+    `;
 
     document.getElementById("student-content").innerHTML=html;
 
@@ -273,7 +277,7 @@ fetch(M.cfg.wwwroot + "/local/automation/analytics_ajax.php",{
     // ✅ IMPORTANT
     loadAdvice();
     loadLocks();
-
+    loadChats();
 });
 
 /* ===================== NAV ===================== */
@@ -325,7 +329,41 @@ function loadLocks(){
 function goBack(){
     window.location.href = M.cfg.wwwroot + "/local/automation/analytics_overview.php";
 }
+function loadChats(){
 
+    fetch(M.cfg.wwwroot + "/local/automation/analytics_ajax.php",{
+        method:"POST",
+        headers:{'Content-Type':'application/x-www-form-urlencoded'},
+        body:new URLSearchParams({
+            action:'get_student_chat',   // ✅ FIXED
+            studentid:studentid,
+            courseid:courseid,
+            sesskey:M.cfg.sesskey
+        })
+    })
+    .then(r=>r.json())
+    .then(data=>{
+
+        console.log("Chats:", data); // 🔥 check this
+
+        let html="";
+
+        if(data.length===0){
+            html="<div>No chats found</div>";
+        }else{
+            data.forEach(c=>{
+                html+=`
+                    <div style="border-bottom:1px solid #ddd;padding:6px;">
+                        <strong>Q:</strong> ${c.question || c.message}<br>
+                        <small>${new Date(c.timecreated*1000).toLocaleString()}</small>
+                    </div>
+                `;
+            });
+        }
+
+        document.getElementById("chatList").innerHTML = html;
+    });
+}
 </script>
 
 <?php

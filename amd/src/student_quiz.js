@@ -14,7 +14,7 @@ define(['jquery'], function($) {
 
             $(function() {
 
-                const apiBase = "http://127.0.0.1:8000";
+                const apiBase = "http://localhost:8000";
                 const quizContainer = $('#quizContainer');
                 const unitContainer = $('#unitContainer');
 

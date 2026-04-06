@@ -14,6 +14,15 @@ $PAGE->set_title('Mini Quiz');
 $PAGE->set_heading('Mini Quiz');
 $PAGE->set_pagelayout('standard');
 
+$PAGE->requires->js_call_amd(
+    'local_automation/student_quiz',
+    'init',
+    [
+        'courseid' => $courseid
+    ]
+);
+
+// Only now start output
 echo $OUTPUT->header();
 ?>
 

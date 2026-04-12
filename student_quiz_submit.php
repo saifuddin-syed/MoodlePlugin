@@ -167,6 +167,49 @@ $record->timecreated = time();
 
 $quizid = $DB->insert_record('local_automation_student_quiz', $record);
 
+
+/* ================= SAVE QUESTION LEVEL DATA ================= */
+
+foreach ($quizData as $index => $q) {
+
+    if (!isset($quizData[$index])) continue;
+
+    $studentAnswer = optional_param("q$index", '', PARAM_INT);
+    $correctAnswer = isset($q['answer_index']) ? (int)$q['answer_index'] : null;
+
+    if ($correctAnswer === null) continue;
+
+    // Score per question
+    $isCorrect = ((int)$studentAnswer === (int)$correctAnswer) ? 1 : 0;
+
+    // Question text
+    $questiontext = isset($q['question']) ? $q['question'] : '';
+
+    // Default values
+    $unit = isset($q['unit']) ? $q['unit'] : 'General';
+    $topic = isset($q['topic']) ? $q['topic'] : 'General';
+
+
+    // Prepare record
+    $qrecord = new stdClass();
+    $qrecord->quizattemptid = $quizid;
+    $qrecord->studentid = $USER->id;
+    $qrecord->courseid = $courseid;
+
+    $qrecord->questionid = $index;
+    $qrecord->questiontext = $questiontext;
+    $qrecord->topic = $topic;
+    $qrecord->unit = $unit;
+
+    $qrecord->score = $isCorrect;
+    $qrecord->maxscore = 1;
+
+    $qrecord->timecreated = time();
+
+    // Insert into new table
+    $DB->insert_record('local_automation_quiz_questions', $qrecord);
+}
+
 // Build chat message summary
 $chatMessage = 
     "📘 <strong>Quiz ID:</strong> $quizid<br>" .

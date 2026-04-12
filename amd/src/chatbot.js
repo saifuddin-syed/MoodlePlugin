@@ -591,6 +591,37 @@ define([
     // For safety, ensure Student knows config
     if (config && config.role === 'student') {
         console.log("INSIDE STUDENT BLOCK",config);
+        // ============================
+        // DASHBOARD BUTTON (SAFE ADD)
+        // ============================
+
+        // Create button only if not exists
+        if (!$('#chatbot-dashboard-btn').length) {
+            $('.chat-input-area').prepend(`
+                <button id="chatbot-dashboard-btn"
+                        type="button"
+                        title="Student Dashboard"
+                        aria-label="Student Dashboard"
+                        style="
+                            border: none;
+                            background: #2196F3;
+                            color: white;
+                            padding: 6px 10px;
+                            border-radius: 8px;
+                            cursor: pointer;
+                        ">
+                    📊
+                </button>
+            `);
+        }
+
+        // Attach click event safely
+        $('#chatbot-dashboard-btn').off('click').on('click', function () {
+            window.location.href =
+                M.cfg.wwwroot +
+                '/local/automation/student_dashboard.php?courseid=' +
+                config.currentcourseid;
+        });
 
         // If outside demo course → disable button
         if (parseInt(config.currentcourseid) !== parseInt(config.democourseid)) {

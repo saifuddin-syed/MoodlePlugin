@@ -283,7 +283,31 @@ Course Material:
 
             try:
                 mcq = json.loads(response.choices[0].message.content)
+
                 if "question" in mcq and "options" in mcq and "answer_index" in mcq:
+
+                    # 🔥 ADD UNIT + TOPIC HERE
+                    # pick random section used for this question
+
+                    selected_unit = None
+                    selected_topic = None
+
+                    if sections:
+                        chosen = random.choice(sections)
+                        selected_unit = chosen.get("unit", "General")
+                        selected_topic = chosen.get("section", "General")
+
+                    elif units:
+                        selected_unit = random.choice(units)
+                        selected_topic = "General"
+
+                    else:
+                        selected_unit = "General"
+                        selected_topic = "General"
+
+                    mcq["unit"] = selected_unit
+                    mcq["topic"] = selected_topic
+
                     questions.append(mcq)
             except:
                 continue

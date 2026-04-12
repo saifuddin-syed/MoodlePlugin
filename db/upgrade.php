@@ -111,5 +111,45 @@ function xmldb_local_automation_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2026032600, 'local', 'automation');
     }
 
+    /* ================= QUIZ QUESTION TABLE ================= */
+    if ($oldversion < 2026041000) {
+
+        $table = new xmldb_table('local_automation_quiz_questions');
+
+        if (!$dbman->table_exists($table)) {
+
+            // Fields
+            $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE);
+
+            $table->add_field('quizattemptid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL);
+
+            $table->add_field('studentid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL);
+            $table->add_field('courseid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL);
+
+            $table->add_field('questionid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL);
+            $table->add_field('questiontext', XMLDB_TYPE_TEXT, null, null, XMLDB_NOTNULL);
+            $table->add_field('topic', XMLDB_TYPE_CHAR, '255', null, XMLDB_NOTNULL);
+            $table->add_field('unit', XMLDB_TYPE_CHAR, '255', null, XMLDB_NOTNULL);
+
+            $table->add_field('score', XMLDB_TYPE_INTEGER, '5', null, XMLDB_NOTNULL);
+            $table->add_field('maxscore', XMLDB_TYPE_INTEGER, '5', null, XMLDB_NOTNULL);
+
+            $table->add_field('timecreated', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL);
+
+            // Keys
+            $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
+
+            // Indexes
+            $table->add_index('quiz_idx', XMLDB_INDEX_NOTUNIQUE, ['quizattemptid']);
+            $table->add_index('student_idx', XMLDB_INDEX_NOTUNIQUE, ['studentid']);
+            $table->add_index('unit_idx', XMLDB_INDEX_NOTUNIQUE, ['unit']);
+
+            // Create table
+            $dbman->create_table($table);
+        }
+
+        upgrade_plugin_savepoint(true, 2026041000, 'local', 'automation');
+    }
+
     return true;
 }

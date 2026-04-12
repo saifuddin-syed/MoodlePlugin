@@ -38,6 +38,7 @@
             </KEYS>
         </TABLE>
 
+
         <!-- Advice -->
         <TABLE NAME="local_automation_advice">
             <FIELDS>
@@ -70,6 +71,41 @@
 
             <INDEXES>
                 <INDEX NAME="uniq_lock" UNIQUE="true" FIELDS="studentid, courseid, difficulty"/>
+            </INDEXES>
+        </TABLE>
+
+        <TABLE NAME="local_automation_quiz_questions" COMMENT="Stores question-level data">
+            <FIELDS>
+                <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+
+                <!-- Link to quiz attempt -->
+                <FIELD NAME="quizattemptid" TYPE="int" LENGTH="10" NOTNULL="true"/>
+
+                <!-- Student & course -->
+                <FIELD NAME="studentid" TYPE="int" LENGTH="10" NOTNULL="true"/>
+                <FIELD NAME="courseid" TYPE="int" LENGTH="10" NOTNULL="true"/>
+
+                <!-- Question info -->
+                <FIELD NAME="questionid" TYPE="int" LENGTH="10" NOTNULL="true"/>
+                <FIELD NAME="questiontext" TYPE="text" NOTNULL="true"/>
+                <FIELD NAME="topic" TYPE="char" LENGTH="255" NOTNULL="true"/>
+                <FIELD NAME="unit" TYPE="char" LENGTH="255" NOTNULL="true"/>
+
+                <!-- Performance -->
+                <FIELD NAME="score" TYPE="int" LENGTH="5" NOTNULL="true"/>
+                <FIELD NAME="maxscore" TYPE="int" LENGTH="5" NOTNULL="true"/>
+
+                <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true"/>
+            </FIELDS>
+
+            <KEYS>
+                <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+            </KEYS>
+
+            <INDEXES>
+                <INDEX NAME="quiz_idx" UNIQUE="false" FIELDS="quizattemptid"/>
+                <INDEX NAME="student_idx" UNIQUE="false" FIELDS="studentid"/>
+                <INDEX NAME="unit_idx" UNIQUE="false" FIELDS="unit"/>
             </INDEXES>
         </TABLE>
 

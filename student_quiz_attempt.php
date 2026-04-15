@@ -32,6 +32,8 @@ $_SESSION['ai_quiz_data'] = $quizData;
 
 $context = context_course::instance($courseid);
 
+$PAGE->set_context($context);
+
 $PAGE->set_url('/local/automation/student_quiz_attempt.php', ['courseid' => $courseid]);
 $PAGE->set_context($context);
 $PAGE->set_title('Quiz Attempt');

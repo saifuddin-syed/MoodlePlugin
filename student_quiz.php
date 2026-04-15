@@ -8,6 +8,8 @@ require_login($courseid);
 
 $context = context_course::instance($courseid);
 
+$PAGE->set_context($context);
+
 $PAGE->set_url('/local/automation/student_quiz.php', ['courseid' => $courseid]);
 $PAGE->set_context($context);
 $PAGE->set_title('Mini Quiz');

@@ -15,6 +15,8 @@ if (!$courseid) {
 $context = context_course::instance($courseid);
 require_login($courseid);
 
+$PAGE->set_context($context);
+
 $PAGE->set_url('/local/automation/analytics_student.php');
 $PAGE->set_pagelayout('embedded');
 $PAGE->set_title('My Progress — ' . $name);

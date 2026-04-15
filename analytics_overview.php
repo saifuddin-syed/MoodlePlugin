@@ -12,6 +12,8 @@ if (!$courseid) {
 $context = context_course::instance($courseid);
 require_capability('moodle/course:view', $context);
 
+$PAGE->set_context($context);
+
 $PAGE->set_url('/local/automation/analytics_overview.php');
 $PAGE->set_pagelayout('standard');
 $PAGE->set_title('Course Overview Analytics');

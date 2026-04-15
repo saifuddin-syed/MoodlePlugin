@@ -8,6 +8,8 @@ $studentid = required_param('studentid', PARAM_INT);
 
 $context = context_course::instance($courseid);
 
+$PAGE->set_context($context);
+
 $PAGE->set_url('/local/automation/chat.php');
 $PAGE->set_pagelayout('standard');
 $PAGE->set_title('Teacher Advice');

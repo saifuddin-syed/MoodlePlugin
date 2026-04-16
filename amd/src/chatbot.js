@@ -505,19 +505,17 @@ define([
         $('.chat-tab').off('click');
 
         $('#ai-chatbot-button').on('click', () => {
-            $('#ai-chatbot-button').on('click', () => {
-                const modal = $('#ai-chatbot-modal');
-
-                modal.toggleClass('hidden');
-
-                if (!modal.hasClass('hidden')) {
-                    setTimeout(() => {
-                        scrollMessagesToBottom();
-                    }, 50);
-                }
-            
-                $('#chatbot-input').focus();
-            });
+            const modal = $('#ai-chatbot-modal');
+                
+            modal.toggleClass('hidden');
+                
+            if (!modal.hasClass('hidden')) {
+                setTimeout(() => {
+                    scrollMessagesToBottom();
+                }, 50);
+            }
+        
+            $('#chatbot-input').focus();
         });
 
         $('#chatbot-close-btn').on('click', () => {

@@ -1,43 +1,68 @@
-<div id="ai-chatbot-button" class="ai-chatbot-btn">
-    ✨
-</div>
+<button id="ai-chatbot-button" class="ai-chatbot-fab" aria-label="Open AI Assistant">✦</button>
 
 <div id="ai-chatbot-modal" class="ai-chatbot-modal hidden">
-    <div class="chat-header">
-        <span>AI Assistant</span>
-        <button id="chatbot-close-btn">×</button>
-    </div>
 
-    <!-- Tabs -->
-    <div class="chat-tabs">
-        <button class="chat-tab active" data-mode="assistant">AI Assistant</button>
-        <button class="chat-tab" data-mode="qb">QB Generator</button>
-        <a id="analytics-btn"
-href="{{config.wwwroot}}/local/automation/analytics_overview.php?courseid={{courseid}}"
-style="
-position:fixed;
-bottom:100px;
-right:20px;
-background:#4f46e5;
-color:white;
-padding:12px 16px;
-border-radius:20px;
-text-decoration:none;
-font-weight:600;
-z-index:9999;
-">
-📊 Analytics
-</a>        
+  <div class="chat-header" id="chat-header">
+    <div class="chat-hdr-left">
+      <div class="chat-title" id="chat-title">AI Assistant</div>
+      <div class="chat-subtitle" id="chat-subtitle">Automation Suite · elearn</div>
     </div>
-
-    <div id="chatbot-messages" class="chat-messages"></div>
-    <div id="chatbot-action-area"></div>
-
-    <div class="chat-input-area">
-        <textarea id="chatbot-input"
-                  rows="1"
-                  placeholder="Type a message... autocomplete="off""></textarea>
-        <button id="chatbot-send-btn">Send</button>
+    <div class="chat-hdr-right">
+      <a id="analytics-btn"
+         class="analytics-pill hidden"
+         href="{{config.wwwroot}}/local/automation/analytics_overview.php?courseid={{courseid}}"
+         title="View Analytics">
+        <span class="analytics-dot"></span>Analytics
+      </a>
+      <div id="student-status" class="student-status hidden">
+        <span class="status-dot"></span>
+        <span class="status-text">Online</span>
+      </div>
+      <button id="chatbot-close-btn" class="chat-close-btn" aria-label="Close">×</button>
     </div>
+  </div>
+
+  <div class="chat-tabs" id="chat-tabs">
+    <button class="chat-tab active" data-mode="assistant">AI Assistant</button>
+    <button class="chat-tab" data-mode="qb">QB Generator</button>
+    <button class="chat-tab hidden" data-mode="quiz">Quiz</button>
+  </div>
+
+  <div class="student-toolbar hidden" id="student-toolbar">
+    <button class="tool-btn" id="chatbot-dashboard-btn" title="My Progress">
+      <span class="tb-icon">📊</span>
+      <span class="tb-label">Progress</span>
+    </button>
+    <button class="tool-btn" id="chatbot-take-quiz-btn" title="Take a Quiz">
+      <span class="tb-icon">✍️</span>
+      <span class="tb-label">Quiz</span>
+    </button>
+    <button class="tool-btn" id="chatbot-open-chat-btn" title="Teacher Advice">
+      <span class="tb-icon">💬</span>
+      <span class="tb-label">Advice</span>
+    </button>
+  </div>
+
+  <div class="suggestion-chips hidden" id="suggestion-chips">
+    <div class="chip" onclick="document.getElementById('chatbot-input').value=this.innerText;document.getElementById('chatbot-input').focus();">What should I revise?</div>
+    <div class="chip" onclick="document.getElementById('chatbot-input').value=this.innerText;document.getElementById('chatbot-input').focus();">Explain with an example</div>
+    <div class="chip" onclick="document.getElementById('chatbot-input').value=this.innerText;document.getElementById('chatbot-input').focus();">Give me a practice question</div>
+    <div class="chip" onclick="document.getElementById('chatbot-input').value=this.innerText;document.getElementById('chatbot-input').focus();">Show my weak areas</div>
+  </div>
+
+  <div id="chatbot-messages" class="chat-messages"></div>
+  <div id="chatbot-action-area"></div>
+
+  <div class="chat-input-area">
+    <textarea id="chatbot-input"
+              rows="1"
+              placeholder="Type a message…"
+              autocomplete="off"></textarea>
+    <button id="chatbot-send-btn" class="chat-send-btn" aria-label="Send">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M2 21l21-9L2 3v7l15 2-15 2z"/>
+      </svg>
+    </button>
+  </div>
 
 </div>

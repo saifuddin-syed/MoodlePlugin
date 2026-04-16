@@ -16,6 +16,11 @@ $PAGE->set_title('Mini Quiz');
 $PAGE->set_heading('Mini Quiz');
 $PAGE->set_pagelayout('standard');
 
+echo '<style>
+.secondary-navigation { display: none !important; }
+#page-header { margin-bottom: 0 !important; }
+</style>';
+
 $PAGE->requires->js_call_amd(
     'local_automation/student_quiz',
     'init',

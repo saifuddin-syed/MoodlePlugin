@@ -449,7 +449,8 @@ define([
             qb: 'QB Generator',
             quiz: 'Quiz Generator'
         }[currentMode];
-        $('.chat-header span').text(headerText);
+        // $('.chat-header span').text(headerText);
+        $('#chat-title').text(headerText);
 
         // Mode-specific placeholder
         const $input = $('#chatbot-input');
@@ -469,6 +470,29 @@ define([
         if (handler && typeof handler.onModeActivated === 'function') {
             handler.onModeActivated();
         }
+
+        const $sendBtn = $('#chatbot-send-btn');
+
+        if (currentMode === 'qb' || currentMode === 'quiz') {
+            // Generate mode (AI sparkle icon + text)
+            $sendBtn
+                .addClass('qb-generate')
+                .html(`
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+                    </svg>
+                    <span>Generate</span>
+                `);
+        } else {
+            // Normal send mode (paper plane icon only)
+            $sendBtn
+                .removeClass('qb-generate')
+                .html(`
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M2 21l21-9L2 3v7l15 2-15 2z"/>
+                    </svg>
+                `);
+        }
     }
 
     // ===== Event binding =====
@@ -481,8 +505,19 @@ define([
         $('.chat-tab').off('click');
 
         $('#ai-chatbot-button').on('click', () => {
-            $('#ai-chatbot-modal').toggleClass('hidden');
-            $('#chatbot-input').focus();
+            $('#ai-chatbot-button').on('click', () => {
+                const modal = $('#ai-chatbot-modal');
+
+                modal.toggleClass('hidden');
+
+                if (!modal.hasClass('hidden')) {
+                    setTimeout(() => {
+                        scrollMessagesToBottom();
+                    }, 50);
+                }
+            
+                $('#chatbot-input').focus();
+            });
         });
 
         $('#chatbot-close-btn').on('click', () => {
@@ -631,7 +666,8 @@ define([
 
         currentMode = 'student';
         $('.chat-tabs').hide();
-        $('.chat-header span').text('AI Course Tutor');
+        // $('.chat-header span').text('AI Course Tutor');
+        $('#chat-title').text('AI Course Tutor');
         $('#chatbot-input').attr('placeholder', 'Ask about this course…');
 
         Student.initConfig(config);
@@ -694,22 +730,32 @@ define([
         });
 
         // Modify Send button styling + icon
-        $('#chatbot-send-btn')
-            .html('✉️')
-            .attr('title', 'Send Message')
-            .attr('aria-label', 'Send Message')
-            .css({
-                borderRadius: '14px',
-                padding: '6px 14px',
-                fontSize: '18px'
-            });
+        $('#ai-chatbot-modal').addClass('student-mode');
+        $('#ai-chatbot-button').css('background', 'var(--cb-sky, #0284c7)');
+        $('.ai-chatbot-fab').css('background', '#0284c7');
+        $('#chat-title').text('AI Course Tutor');
+        $('#chat-subtitle').text('Powered by Llama 3.1 8B');
+        $('#student-status').removeClass('hidden');
+        $('#suggestion-chips').removeClass('hidden');
+        $('#student-toolbar').removeClass('hidden');
+        $('#chat-tabs').addClass('hidden');
+        $('#analytics-btn').addClass('hidden');
 
         Student.loadHistory(appendMessage);
 
     } else {
+        $('#chatbot-send-btn').html(`
+            <svg viewBox="0 0 24 24" fill="currentColor">
+                <path d="M2 21l21-9L2 3v7l15 2-15 2z"/>
+            </svg>
+        `);
         // Teacher → use localStorage history
+        $('#analytics-btn').removeClass('hidden');
+        $('#chat-tabs').removeClass('hidden');
         $('.chat-tabs').show();
-        $('.chat-header span').text('AI Assistant');
+        // $('.chat-header span').text('AI Assistant');
+        $('#chat-title').text('AI Assistant');
+        $('#chat-subtitle').text('');
         currentMode = 'assistant';
         loadHistory();
     }

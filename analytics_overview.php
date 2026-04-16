@@ -19,6 +19,11 @@ $PAGE->set_pagelayout('standard');
 $PAGE->set_title('Course Overview Analytics');
 $PAGE->set_heading('Course Overview Analytics');
 
+echo '<style>
+.secondary-navigation { display: none !important; }
+#page-header { margin-bottom: 0 !important; }
+</style>';
+
 echo $OUTPUT->header();
 ?>
 

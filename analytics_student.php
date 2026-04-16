@@ -21,6 +21,11 @@ $PAGE->set_pagelayout('standard');
 $PAGE->set_title('Student Analytics — ' . $name);
 $PAGE->set_heading('Student Analytics');
 
+echo '<style>
+.secondary-navigation { display: none !important; }
+#page-header { margin-bottom: 0 !important; }
+</style>';
+
 $parts    = explode(' ', trim($name));
 $initials = strtoupper(
     (isset($parts[0]) ? $parts[0][0] : '') .

@@ -17,11 +17,11 @@ define([
 
     // Mode-specific handlers (only assistant for now)
     const handlers = {
-    assistant: Assistant,
-    qb: QB,
-    quiz: Quiz,
-    student: Student,
-    analytics: {}
+        assistant: Assistant,
+        qb: QB,
+        quiz: Quiz,
+        student: Student,
+        analytics: {}
     };
 
     // ===== History helpers =====
@@ -58,7 +58,7 @@ define([
         });
 
         const dateString = dateObj.toDateString();
-        
+
         console.log("APPEND CALLED →", {
             text,
             sender,
@@ -70,11 +70,10 @@ define([
             timestamp = Math.floor(Date.now() / 1000);
         }
 
-    
         const container = $('#chatbot-messages');
-    
+
         const lastDate = container.data('last-date');
-    
+
         // Add date separator if new day
         if (lastDate !== dateString) {
             container.append(`
@@ -84,18 +83,18 @@ define([
             `);
             container.data('last-date', dateString);
         }
-    
+
         const className = sender === 'user' ? 'msg-user' : 'msg-bot';
-    
+
         const messageHtml = `
             <div class="message ${className}">
                 <div class="message-text">${text}</div>
                 <div class="message-time">${time}</div>
             </div>
         `;
-    
+
         container.append(messageHtml);
-    
+
         scrollMessagesToBottom();
     }
 
@@ -141,58 +140,56 @@ define([
         if (currentMode === 'student') {
             if (!text) return;
 
-            // appendMessage(escapeHtml(text), 'user', false);
             input.val('');
+            // Reset textarea height
+            input[0].style.height = 'auto';
 
             Student.saveMessageToDB(text, 'user').then(function(res) {
                 if (typeof res === 'string') {
                     res = JSON.parse(res);
                 }
-            
+
                 appendMessage(escapeHtml(text), 'user', parseInt(res.timecreated), false);
-            
+
                 Student.askRAG(text).then(function(res) {
-                
+
                     if (res && res.ok && res.answer) {
                         const reply = res.answer.replace(/\n/g, '<br>');
-                        // appendMessage(reply, 'bot', false);
-                        // Student.saveMessageToDB(res.answer, 'bot');
                         Student.saveMessageToDB(res.answer, 'bot').then(function(botRes) {
 
                             if (typeof botRes === 'string') {
                                 botRes = JSON.parse(botRes);
                             }
-                        
+
                             appendMessage(reply, 'bot', parseInt(botRes.timecreated), false);
                         });
                     } else {
                         appendMessage('⚠️ Tutor failed to respond.', 'bot', false);
                     }
-                
+
                 }).catch(function(err) {
                     console.error(err);
                     appendMessage('❌ AI service unavailable.', 'bot', false);
                 });
-            
+
             });
-        
+
             return;
         }
-        
+
         // QB mode uses its own endpoint (qb_ajax.php), not chatbot_endpoint.php
         if (currentMode === 'qb' && handlers.qb && typeof handlers.qb.generate === 'function') {
-            const instructions = text; // can be empty string
+            const instructions = text;
 
-            // Only show a user bubble if they actually typed something
             if (instructions) {
                 appendMessage(escapeHtml(instructions), 'user');
             }
-        
+
             input.val('');
             handlers.qb.generate(text, {
                 appendMessage,
                 scrollMessagesToBottom,
-                showConfirmButton,   // not used by QB now, but available
+                showConfirmButton,
                 clearConfirmButton,
                 escapeHtml
             });
@@ -205,7 +202,7 @@ define([
             if (instructions) {
                 appendMessage(escapeHtml(instructions), 'user');
             }
-        
+
             input.val('');
             handlers.quiz.generate(text, {
                 appendMessage,
@@ -240,7 +237,6 @@ define([
                 sesskey: M.cfg.sesskey
             },
             success: function(res) {
-                // Give mode handler a first chance to process structured automation responses
                 const handler = handlers[currentMode];
                 if (handler && typeof handler.handleResponse === 'function') {
                     const consumed = handler.handleResponse(res, {
@@ -256,7 +252,6 @@ define([
                     }
                 }
 
-                // Fallback plain-text handling (for qb / quiz / generic assistant replies)
                 if (res.reply) {
                     const formattedReply = res.reply.replace(/\n/g, '<br>');
                     appendMessage(formattedReply, 'bot');
@@ -271,7 +266,7 @@ define([
         });
     }
 
-    //analytics helper
+    // ===== Analytics helper =====
     function loadStudentDetails(studentid, studentName) {
 
         $('#chatbot-messages').html('<div>Loading details...</div>');
@@ -338,7 +333,6 @@ define([
                     `;
                 }
 
-                // Chat history section
                 html += `
                     <h4 style="margin-top:20px;">Chat History</h4>
                     <div id="analytics-chat-history" class="analytics-chat-box">
@@ -348,7 +342,6 @@ define([
 
                 $('#chatbot-messages').html(html);
 
-                // Back button handler
                 $('#analytics-back-btn').on('click', function() {
 
                     $('#chatbot-messages').html('<div>Loading students...</div>');
@@ -362,12 +355,12 @@ define([
                             sesskey: M.cfg.sesskey
                         },
                         success: function(students) {
-                        
+
                             let html = `
                                 <div class="analytics-student-list">
                                     <h4>Enrolled Students</h4>
                             `;
-                        
+
                             students.forEach(s => {
                                 const name = escapeHtml((s.firstname || '') + ' ' + (s.lastname || ''));
                                 html += `
@@ -377,13 +370,13 @@ define([
                                     </div>
                                 `;
                             });
-                        
+
                             html += `</div>`;
-                        
+
                             $('#chatbot-messages').html(html);
                         }
                     });
-                });             
+                });
 
                 fetchStudentChat(studentid);
             }
@@ -430,7 +423,6 @@ define([
         }
         console.log("TAB SWITCH TO:", newMode);
 
-        // Reset previous mode handler (if any state)
         const oldHandler = handlers[currentMode];
         if (oldHandler && typeof oldHandler.reset === 'function') {
             oldHandler.reset();
@@ -439,27 +431,22 @@ define([
         currentMode = newMode;
         console.log(`Switched to mode: ${currentMode}`);
 
-        // Update tab visuals
         $('.chat-tab').removeClass('active');
         $(`.chat-tab[data-mode="${currentMode}"]`).addClass('active');
 
-        // Update header title
         const headerText = {
             assistant: 'AI Assistant',
             qb: 'QB Generator',
             quiz: 'Quiz Generator'
         }[currentMode];
-        // $('.chat-header span').text(headerText);
         $('#chat-title').text(headerText);
 
-        // Mode-specific placeholder
         const $input = $('#chatbot-input');
         if (currentMode === 'qb') {
             $input.attr('placeholder', 'Type preferences for this question bank (optional)…');
         } else if (currentMode === 'quiz') {
             $input.attr('placeholder', 'Describe the quiz you want to generate…');
         } else {
-            // Assistant default
             $input.attr('placeholder', 'Type your message…');
         }
 
@@ -474,7 +461,6 @@ define([
         const $sendBtn = $('#chatbot-send-btn');
 
         if (currentMode === 'qb' || currentMode === 'quiz') {
-            // Generate mode (AI sparkle icon + text)
             $sendBtn
                 .addClass('qb-generate')
                 .html(`
@@ -484,7 +470,6 @@ define([
                     <span>Generate</span>
                 `);
         } else {
-            // Normal send mode (paper plane icon only)
             $sendBtn
                 .removeClass('qb-generate')
                 .html(`
@@ -497,7 +482,6 @@ define([
 
     // ===== Event binding =====
     function bindEvents() {
-        // Unbind first to avoid duplicate handlers if init runs twice
         $('#ai-chatbot-button').off('click');
         $('#chatbot-close-btn').off('click');
         $('#chatbot-send-btn').off('click');
@@ -506,15 +490,15 @@ define([
 
         $('#ai-chatbot-button').on('click', () => {
             const modal = $('#ai-chatbot-modal');
-                
+
             modal.toggleClass('hidden');
-                
+
             if (!modal.hasClass('hidden')) {
                 setTimeout(() => {
                     scrollMessagesToBottom();
                 }, 50);
             }
-        
+
             $('#chatbot-input').focus();
         });
 
@@ -524,10 +508,9 @@ define([
 
         $('#chatbot-send-btn').on('click', handleSend);
 
-        // Auto-resize input like a chat textarea
         const $input = $('#chatbot-input');
         $input.on('input', function() {
-            const maxHeight = 150; // px – grows up to this height
+            const maxHeight = 150;
             this.style.height = 'auto';
             this.style.height = Math.min(this.scrollHeight, maxHeight) + 'px';
         });
@@ -547,7 +530,6 @@ define([
 
     // Helper to set up the UI after template is present (idempotent)
     function setupUIAndActivate() {
-        // ensure modal element exists; if not, render caller handles append
         const $modal = $('#ai-chatbot-modal');
         $modal.css({
             width: '720px',
@@ -556,7 +538,6 @@ define([
             maxHeight: '80vh'
         });
 
-        // Slightly smaller bubbles
         $('#chatbot-messages').css({
             fontSize: '0.85rem',
             lineHeight: '1.4'
@@ -576,18 +557,229 @@ define([
         bindEvents();
     }
 
+    // ===== Smart suggestion chips for student mode =====
+    // Fetches quiz history, analyses it, then wires each chip to send a
+    // context-rich query. Chips are plain pill-shaped text buttons (no icons)
+    // matching the UI design shown in the screenshot.
+    function setupSmartSuggestionChips(config) {
+
+        const $chips = $('#suggestion-chips');
+        if (!$chips.length) return;
+
+        // Chip definitions: label shown on the button + function that builds
+        // the rich query string from the analysed quiz data.
+        const chipDefs = [
+            {
+                label: 'What should I revise?',
+                buildQuery: function(analysis) {
+                    if (!analysis.weakTopics.length) {
+                        return 'Based on my overall quiz performance so far, what topics should I focus on revising to improve my understanding?';
+                    }
+                    return `Based on my quiz history, I have scored poorly in the following topics: ${analysis.weakTopics.join(', ')}. ` +
+                           `My average score is ${analysis.avgScorePct}%. ` +
+                           `\n\nCan you suggest a personalised revision plan for me?`;
+                }
+            },
+            {
+                label: 'Give me a practice question',
+                buildQuery: function(analysis) {
+                    const topic      = analysis.weakTopics[0] || analysis.recentTopic || 'the course material';
+                    const difficulty = analysis.suggestedDifficulty || 'medium';
+                    return `Please give me a ${difficulty}-difficulty practice question on "${topic}" ` +
+                           `and let me attempt it before you reveal the answer.`;
+                }
+            },
+            {
+                label: 'Show my weak areas',
+                buildQuery: function(analysis) {
+                    if (!analysis.weakTopics.length && !analysis.totalAttempts) {
+                        return 'I have not taken many quizzes yet. Can you tell me what the most important foundational topics in this course are that I should master first?';
+                    }
+                    return `Here is a summary of my quiz performance: ` +
+                           `I have attempted ${analysis.totalAttempts} quiz(zes) with an average score of ${analysis.avgScorePct}%. ` +
+                           `My weakest topics are: ${analysis.weakTopics.join(', ') || 'not yet identified'}. ` +
+                           `Please give me a detailed breakdown of my weak areas and actionable advice to improve each one.`;
+                }
+            }
+        ];
+
+        // Render pill-shaped chip buttons (disabled while data loads)
+        $chips.empty();
+
+        // Apply flex-row scroll layout to the chips container
+        $chips.css({
+            display: 'grid',
+            gridTemplateColumns: 'repeat(3, 1fr)',
+            gap: '8px'
+        });
+
+        chipDefs.forEach(function(chip, idx) {
+            const $btn = $(`
+                <button class="suggestion-chip" data-chip-idx="${idx}" disabled
+                    style="
+                        flex-shrink: 0;
+                        white-space: nowrap;
+                        padding: 6px 14px;
+                        border-radius: 999px;
+                        border: 1.5px solid #c8c8c8;
+                        background: #ffffff;
+                        color: #333333;
+                        font-size: 0.8rem;
+                        cursor: pointer;
+                        transition: background 0.15s, border-color 0.15s;
+                        opacity: 0.6;
+                    ">
+                    ${escapeHtml(chip.label)}
+                </button>
+            `);
+            $chips.append($btn);
+        });
+
+        // Fetch student quiz data to personalise the queries
+        $.ajax({
+            url: M.cfg.wwwroot + '/local/automation/analytics_ajax.php',
+            method: 'POST',
+            data: {
+                action: 'get_student_quiz',
+                studentid: M.cfg.userId,
+                courseid:  config.currentcourseid,
+                sesskey:   M.cfg.sesskey
+            },
+            success: function(quizzes) {
+                const analysis = analyseStudentData(quizzes);
+                activateChips(analysis);
+            },
+            error: function() {
+                // Fall back to generic (empty) analysis so chips still work
+                activateChips(analyseStudentData([]));
+            }
+        });
+
+        function activateChips(analysis) {
+            $chips.find('.suggestion-chip').each(function() {
+                const idx  = parseInt($(this).data('chip-idx'));
+                const chip = chipDefs[idx];
+
+                $(this)
+                    .prop('disabled', false)
+                    .css('opacity', '1')
+                    .off('click')
+                    .on('click', function() {
+                        const query  = chip.buildQuery(analysis);
+                        const $input = $('#chatbot-input');
+
+                        $input.val(query);
+                        // Trigger auto-resize
+                        $input[0].style.height = 'auto';
+                        $input[0].style.height = Math.min($input[0].scrollHeight, 150) + 'px';
+
+                        handleSend();
+                    })
+                    .on('mouseenter', function() {
+                        $(this).css({ background: '#f0f4ff', borderColor: '#7c9ef8' });
+                    })
+                    .on('mouseleave', function() {
+                        $(this).css({ background: '#ffffff', borderColor: '#c8c8c8' });
+                    });
+            });
+        }
+    }
+
+    /**
+     * Analyse an array of quiz attempt objects returned by analytics_ajax.php
+     * and return a concise summary used to build personalised chip queries.
+     *
+     * Each quiz object is expected to have:
+     *   { score, total, topic, difficulty, recommendation, timecreated }
+     *
+     * Returns:
+     *   {
+     *     weakTopics:          string[]   — topics where avg score < 60%
+     *     avgScorePct:         number     — overall average score %
+     *     totalAttempts:       number
+     *     recentTopic:         string     — topic of the latest attempt
+     *     suggestedDifficulty: string     — 'easy' | 'medium' | 'hard'
+     *   }
+     */
+    function analyseStudentData(quizzes) {
+        const result = {
+            weakTopics:          [],
+            avgScorePct:         0,
+            totalAttempts:       0,
+            recentTopic:         '',
+            suggestedDifficulty: 'medium'
+        };
+
+        if (!quizzes || quizzes.length === 0) {
+            return result;
+        }
+
+        result.totalAttempts = quizzes.length;
+
+        // Sort by timecreated descending to find the latest attempt
+        const sorted = quizzes.slice().sort(function(a, b) {
+            return parseInt(b.timecreated) - parseInt(a.timecreated);
+        });
+        result.recentTopic = sorted[0].topic || '';
+
+        // Per-topic aggregate
+        const topicMap = {}; // topic → { score, total, count }
+
+        let grandScore = 0;
+        let grandTotal = 0;
+
+        quizzes.forEach(function(q) {
+            const score = parseFloat(q.score) || 0;
+            const total = parseFloat(q.total) || 1;
+
+            grandScore += score;
+            grandTotal += total;
+
+            const t = q.topic || 'General';
+            if (!topicMap[t]) {
+                topicMap[t] = { score: 0, total: 0, count: 0 };
+            }
+            topicMap[t].score += score;
+            topicMap[t].total += total;
+            topicMap[t].count++;
+        });
+
+        result.avgScorePct = grandTotal > 0
+            ? Math.round((grandScore / grandTotal) * 100)
+            : 0;
+
+        // Identify weak topics (avg score below 60%)
+        Object.keys(topicMap).forEach(function(topic) {
+            const t   = topicMap[topic];
+            const pct = t.total > 0 ? (t.score / t.total) * 100 : 0;
+            if (pct < 60) {
+                result.weakTopics.push(topic);
+            }
+        });
+
+        // Suggest difficulty based on overall performance
+        if (result.avgScorePct >= 80) {
+            result.suggestedDifficulty = 'hard';
+        } else if (result.avgScorePct >= 50) {
+            result.suggestedDifficulty = 'medium';
+        } else {
+            result.suggestedDifficulty = 'easy';
+        }
+
+        return result;
+    }
+
     // ===== Init =====
     function init(cfg) {
         // Backwards-compat: if called as init("student","21","21")
         if (typeof cfg === 'string') {
-            // cfg is role string; build the config object from arguments
-            const role = cfg;
+            const role            = cfg;
             const currentcourseid = (typeof arguments[1] !== 'undefined') ? arguments[1] : 0;
-            const democourseid = (typeof arguments[2] !== 'undefined') ? arguments[2] : '';
+            const democourseid    = (typeof arguments[2] !== 'undefined') ? arguments[2] : '';
             cfg = {
-                role: role,
-                currentcourseid: parseInt(currentcourseid) || 0,
-                democourseid: String(democourseid)
+                role:             role,
+                currentcourseid:  parseInt(currentcourseid) || 0,
+                democourseid:     String(democourseid)
             };
             console.warn('chatbot.init() called in legacy form — normalized config:', cfg);
         }
@@ -595,13 +787,11 @@ define([
         console.trace('INIT TRACE');
         console.log('INIT CALLED WITH:', cfg);
 
-        // Normalize and store page-level config (module scope)
         pageConfig = cfg || {};
-        const config = pageConfig; // alias used inside init
+        const config = pageConfig;
         console.log("CONFIG TYPE:", typeof config);
         console.log("CONFIG VALUE:", config);
 
-        // only render template if it doesn't already exist
         if (!document.getElementById('ai-chatbot-modal')) {
             Templates.render('local_automation/chatbot', {})
                 .then(html => {
@@ -611,7 +801,6 @@ define([
                 })
                 .catch(err => console.error('Chatbot template load failed:', err));
         } else {
-            // already present in DOM — just set up UI and activate mode
             setupUIAndActivate();
             activateModeAfterRender(config);
         }
@@ -619,145 +808,136 @@ define([
         console.log("SESSKEY:", M.cfg.sesskey);
     }
 
-    // helper to pick student/teacher flow after template present
+    // helper to pick student/teacher flow after template is present
     function activateModeAfterRender(config) {
-    // For safety, ensure Student knows config
-    if (config && config.role === 'student') {
-        console.log("INSIDE STUDENT BLOCK",config);
-        // ============================
-        // DASHBOARD BUTTON (SAFE ADD)
-        // ============================
 
-        // Create button only if not exists
-        if (!$('#chatbot-dashboard-btn').length) {
-            $('.chat-input-area').prepend(`
-                <button id="chatbot-dashboard-btn"
-                        type="button"
-                        title="Student Dashboard"
-                        aria-label="Student Dashboard"
-                        style="
-                            border: none;
-                            background: #2196F3;
-                            color: white;
-                            padding: 6px 10px;
-                            border-radius: 8px;
-                            cursor: pointer;
-                        ">
-                    📊
-                </button>
+        if (config && config.role === 'student') {
+            console.log("INSIDE STUDENT BLOCK", config);
+
+            // ── Dashboard button ─────────────────────────────────────────────
+            if (!$('#chatbot-dashboard-btn').length) {
+                $('.chat-input-area').prepend(`
+                    <button id="chatbot-dashboard-btn"
+                            type="button"
+                            title="Student Dashboard"
+                            aria-label="Student Dashboard"
+                            style="
+                                border: none;
+                                background: #2196F3;
+                                color: white;
+                                padding: 6px 10px;
+                                border-radius: 8px;
+                                cursor: pointer;
+                            ">
+                        📊
+                    </button>
+                `);
+            }
+
+            $('#chatbot-dashboard-btn').off('click').on('click', function() {
+                window.location.href =
+                    M.cfg.wwwroot +
+                    '/local/automation/student_dashboard.php?courseid=' +
+                    config.currentcourseid;
+            });
+
+            // If outside demo course → disable button
+            if (parseInt(config.currentcourseid) !== parseInt(config.democourseid)) {
+                $('#ai-chatbot-button').off('click');
+                return;
+            }
+
+            currentMode = 'student';
+            $('.chat-tabs').hide();
+            $('#chat-title').text('AI Course Tutor');
+            $('#chatbot-input').attr('placeholder', 'Ask about this course…');
+
+            Student.initConfig(config);
+
+            // Make input area flex
+            $('.chat-input-area').css({
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px'
+            });
+
+            $('#chatbot-action-area').empty();
+
+            // Chat button
+            if (!$('#chatbot-open-chat-btn').length) {
+                $('.chat-input-area').prepend(`
+                    <button id="chatbot-open-chat-btn"
+                            type="button"
+                            title="Chat with Teacher"
+                            aria-label="Chat with Teacher">
+                        💬
+                    </button>
+                `);
+            }
+
+            // Quiz button
+            if (!$('#chatbot-take-quiz-btn').length) {
+                $('.chat-input-area').prepend(`
+                    <button id="chatbot-take-quiz-btn"
+                            type="button"
+                            title="Take Quiz"
+                            aria-label="Take Quiz">
+                        ✍️
+                    </button>
+                `);
+            }
+
+            console.log("user:", config.userid);
+
+            $('#chatbot-open-chat-btn').off('click').on('click', function() {
+                console.log("CLICK WORKING");
+                console.log("course:", config.currentcourseid);
+                window.location.href =
+                    M.cfg.wwwroot +
+                    '/local/automation/chat.php?courseid=' +
+                    config.currentcourseid +
+                    '&studentid=' +
+                    M.cfg.userId;
+            });
+
+            $('#chatbot-take-quiz-btn').off('click').on('click', function() {
+                window.location.href =
+                    M.cfg.wwwroot +
+                    '/local/automation/student_quiz.php?courseid=' +
+                    config.currentcourseid;
+            });
+
+            $('#ai-chatbot-modal').addClass('student-mode');
+            $('#ai-chatbot-button').css('background', 'var(--cb-sky, #0284c7)');
+            $('.ai-chatbot-fab').css('background', '#0284c7');
+            $('#chat-title').text('AI Course Tutor');
+            $('#chat-subtitle').text('Powered by Llama 3.1 8B');
+            $('#student-status').removeClass('hidden');
+            $('#suggestion-chips').removeClass('hidden');
+            $('#student-toolbar').removeClass('hidden');
+            $('#chat-tabs').addClass('hidden');
+            $('#analytics-btn').addClass('hidden');
+
+            Student.loadHistory(appendMessage);
+
+            // ── Wire smart suggestion chips (data-driven) ────────────────────
+            setupSmartSuggestionChips(config);
+
+        } else {
+            $('#chatbot-send-btn').html(`
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M2 21l21-9L2 3v7l15 2-15 2z"/>
+                </svg>
             `);
+            $('#analytics-btn').removeClass('hidden');
+            $('#chat-tabs').removeClass('hidden');
+            $('.chat-tabs').show();
+            $('#chat-title').text('AI Assistant');
+            $('#chat-subtitle').text('');
+            currentMode = 'assistant';
+            loadHistory();
         }
-
-        // Attach click event safely
-        $('#chatbot-dashboard-btn').off('click').on('click', function () {
-            window.location.href =
-                M.cfg.wwwroot +
-                '/local/automation/student_dashboard.php?courseid=' +
-                config.currentcourseid;
-        });
-
-        // If outside demo course → disable button
-        if (parseInt(config.currentcourseid) !== parseInt(config.democourseid)) {
-            $('#ai-chatbot-button').off('click');
-            return;
-        }
-
-        currentMode = 'student';
-        $('.chat-tabs').hide();
-        // $('.chat-header span').text('AI Course Tutor');
-        $('#chat-title').text('AI Course Tutor');
-        $('#chatbot-input').attr('placeholder', 'Ask about this course…');
-
-        Student.initConfig(config);
-
-        // Make input area flex
-        $('.chat-input-area').css({
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px'
-        });
-
-        // Remove old action-area button
-        $('#chatbot-action-area').empty();
-
-        // ✅ CREATE BUTTONS FIRST
-
-        // Chat button
-        if (!$('#chatbot-open-chat-btn').length) {
-            $('.chat-input-area').prepend(`
-                <button id="chatbot-open-chat-btn"
-                        type="button"
-                        title="Chat with Teacher"
-                        aria-label="Chat with Teacher">
-                    💬
-                </button>
-            `);
-        }
-
-        // Quiz button
-        if (!$('#chatbot-take-quiz-btn').length) {
-            $('.chat-input-area').prepend(`
-                <button id="chatbot-take-quiz-btn"
-                        type="button"
-                        title="Take Quiz"
-                        aria-label="Take Quiz">
-                    ✍️
-                </button>
-            `);
-        }
-        console.log("user:", config.userid);
-
-        // ✅ NOW ATTACH CLICK HANDLERS
-
-        $('#chatbot-open-chat-btn').off('click').on('click', function () {
-            console.log("CLICK WORKING");
-            console.log("course:", config.currentcourseid);
-            window.location.href =
-                M.cfg.wwwroot +
-                '/local/automation/chat.php?courseid=' +
-                config.currentcourseid +
-                '&studentid=' +
-                M.cfg.userId;
-        });
-
-        $('#chatbot-take-quiz-btn').off('click').on('click', function () {
-            window.location.href =
-                M.cfg.wwwroot +
-                '/local/automation/student_quiz.php?courseid=' +
-                config.currentcourseid;
-        });
-
-        // Modify Send button styling + icon
-        $('#ai-chatbot-modal').addClass('student-mode');
-        $('#ai-chatbot-button').css('background', 'var(--cb-sky, #0284c7)');
-        $('.ai-chatbot-fab').css('background', '#0284c7');
-        $('#chat-title').text('AI Course Tutor');
-        $('#chat-subtitle').text('Powered by Llama 3.1 8B');
-        $('#student-status').removeClass('hidden');
-        $('#suggestion-chips').removeClass('hidden');
-        $('#student-toolbar').removeClass('hidden');
-        $('#chat-tabs').addClass('hidden');
-        $('#analytics-btn').addClass('hidden');
-
-        Student.loadHistory(appendMessage);
-
-    } else {
-        $('#chatbot-send-btn').html(`
-            <svg viewBox="0 0 24 24" fill="currentColor">
-                <path d="M2 21l21-9L2 3v7l15 2-15 2z"/>
-            </svg>
-        `);
-        // Teacher → use localStorage history
-        $('#analytics-btn').removeClass('hidden');
-        $('#chat-tabs').removeClass('hidden');
-        $('.chat-tabs').show();
-        // $('.chat-header span').text('AI Assistant');
-        $('#chat-title').text('AI Assistant');
-        $('#chat-subtitle').text('');
-        currentMode = 'assistant';
-        loadHistory();
     }
-}
 
     return { init: init };
 });

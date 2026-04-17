@@ -12,12 +12,8 @@
          class="analytics-pill hidden"
          href="{{config.wwwroot}}/local/automation/analytics_overview.php?courseid={{courseid}}"
          title="View Analytics">
-        <span class="analytics-dot"></span>Analytics
+        Analytics
       </a>
-      <div id="student-status" class="student-status hidden">
-        <span class="status-dot"></span>
-        <span class="status-text">Online</span>
-      </div>
       <button id="chatbot-close-btn" class="chat-close-btn" aria-label="Close">×</button>
     </div>
   </div>
@@ -29,23 +25,50 @@
   </div>
 
   <div class="student-toolbar hidden" id="student-toolbar">
-    <button class="tool-btn" id="chatbot-dashboard-btn" title="My Progress">
-      <span class="tb-icon">📊</span>
-      <span class="tb-label">Progress</span>
-    </button>
-    <button class="tool-btn" id="chatbot-take-quiz-btn" title="Take a Quiz">
-      <span class="tb-icon">✍️</span>
-      <span class="tb-label">Quiz</span>
-    </button>
-    <button class="tool-btn" id="chatbot-open-chat-btn" title="Teacher Advice">
-      <span class="tb-icon">💬</span>
-      <span class="tb-label">Advice</span>
-    </button>
+    <!-- PROGRESS -->
+      <button class="tool-btn" id="chatbot-dashboard-btn" title="My Progress">
+        <span class="tb-icon">
+          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+            <line x1="4" y1="20" x2="4" y2="10"/>
+            <line x1="10" y1="20" x2="10" y2="4"/>
+            <line x1="16" y1="20" x2="16" y2="14"/>
+            <line x1="22" y1="20" x2="22" y2="8"/>
+          </svg>
+        </span>
+        <span class="tb-label">Progress</span>
+      </button>
+
+      <!-- QUIZ -->
+      <button class="tool-btn" id="chatbot-take-quiz-btn" title="Take a Quiz">
+        <span class="tb-icon">
+          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M9.5 9a2.5 2.5 0 1 1 3 2.45c-.8.35-1.5.9-1.5 1.8"/>
+            <line x1="12" y1="17" x2="12" y2="17"/>
+          </svg>
+        </span>
+        <span class="tb-label">Quiz</span>
+      </button>
+
+      <!-- ADVICE -->
+      <button class="tool-btn" id="chatbot-open-chat-btn" title="Teacher Advice">
+        <span class="tb-icon">
+          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+            <path d="M9 18h6"/>
+            <path d="M10 22h4"/>
+            <path d="M12 2a7 7 0 0 0-4 12c1 1 1 2 1 3h6c0-1 0-2 1-3a7 7 0 0 0-4-12z"/>
+          </svg>
+        </span>
+        <span class="tb-label">Advice</span>
+      </button>
+
   </div>
 
   <div class="suggestion-chips hidden" id="suggestion-chips">
     <div class="chip" onclick="document.getElementById('chatbot-input').value=this.innerText;document.getElementById('chatbot-input').focus();">What should I revise?</div>
-    <div class="chip" onclick="document.getElementById('chatbot-input').value=this.innerText;document.getElementById('chatbot-input').focus();">Explain with an example</div>
     <div class="chip" onclick="document.getElementById('chatbot-input').value=this.innerText;document.getElementById('chatbot-input').focus();">Give me a practice question</div>
     <div class="chip" onclick="document.getElementById('chatbot-input').value=this.innerText;document.getElementById('chatbot-input').focus();">Show my weak areas</div>
   </div>
@@ -66,3 +89,17 @@
   </div>
 
 </div>
+<style>
+.tb-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 4px;
+  color: #111; /* black */
+}
+
+.tool-btn svg {
+  width: 22px;
+  height: 22px;
+}
+</style>

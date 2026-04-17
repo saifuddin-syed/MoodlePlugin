@@ -516,11 +516,11 @@ div[data-region="blocks-column"],
             <div id="strongSections"><div class="loading"><div class="spinner"></div></div></div>
         </div>
 
-        <!-- Teacher advice -->
+        <!-- Teacher advice
         <div class="card">
             <div class="card-title">📝 Teacher advice</div>
             <div id="adviceList"><div class="loading"><div class="spinner"></div></div></div>
-        </div>
+        </div> -->
 
     </div><!-- /col-right -->
 
@@ -829,12 +829,12 @@ function renderAttemptLog() {
     }).join("");
 }
 
-function loadAdvice() {
-    moodlePost("get_advice").then(data=>{
-        if(!data||!data.length){document.getElementById("adviceList").innerHTML=`<p style="font-size:11px;color:var(--hint)">No advice from your teacher yet.</p>`;return;}
-        document.getElementById("adviceList").innerHTML=data.map(a=>`<div style="border-left:3px solid var(--blue);background:var(--blue-bg);padding:8px 12px;border-radius:0 6px 6px 0;margin-bottom:8px;font-size:12px;line-height:1.5">${a.advice}<br><small style="color:var(--hint);font-size:10px">${new Date(a.timecreated*1000).toLocaleString()}</small></div>`).join("");
-    }).catch(()=>{ document.getElementById("adviceList").innerHTML=`<p style="font-size:11px;color:var(--hint)">No advice yet.</p>`; });
-}
+// function loadAdvice() {
+//     moodlePost("get_advice").then(data=>{
+//         if(!data||!data.length){document.getElementById("adviceList").innerHTML=`<p style="font-size:11px;color:var(--hint)">No advice from your teacher yet.</p>`;return;}
+//         document.getElementById("adviceList").innerHTML=data.map(a=>`<div style="border-left:3px solid var(--blue);background:var(--blue-bg);padding:8px 12px;border-radius:0 6px 6px 0;margin-bottom:8px;font-size:12px;line-height:1.5">${a.advice}<br><small style="color:var(--hint);font-size:10px">${new Date(a.timecreated*1000).toLocaleString()}</small></div>`).join("");
+//     }).catch(()=>{ document.getElementById("adviceList").innerHTML=`<p style="font-size:11px;color:var(--hint)">No advice yet.</p>`; });
+// }
 
 function moodlePost(action,extra={}) {
     return fetch(M.cfg.wwwroot+"/local/automation/analytics_ajax.php",{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},body:new URLSearchParams({action,studentid,courseid,sesskey:M.cfg.sesskey,...extra})}).then(r=>r.json());
@@ -852,7 +852,7 @@ moodlePost("get_student_quiz").then(data=>{
     renderRecos();
     filterSections();
     renderAttemptLog();
-    loadAdvice();
+    // loadAdvice();
 });
 </script>
 

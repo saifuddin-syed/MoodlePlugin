@@ -470,10 +470,113 @@ const STUDENTID = <?php echo (int)$studentid; ?>;
 const AJAX_URL  = M.cfg.wwwroot + '/local/automation/analytics_ajax.php';
 
 const DEMO_TOPICS = {
-    "UNIT IV":{"4.1":"Introduction to Trees","4.2":"Tree Terminology","4.3":"Tree Properties","4.4":"Tree Representations","4.5":"Binary Trees","4.6":"Types of Binary Trees","4.7":"Binary Tree ADT","4.8":"Properties of Binary Trees","4.9":"Binary Tree Representation","4.10":"Binary Tree Traversals","4.11":"Iterative and Level Order Traversal","4.12":"Binary Search Trees","4.13":"BST Searching","4.14":"BST Insertion","4.15":"BST Deletion","4.16":"Height of Binary Search Tree"},
-    "UNIT V": {"5.1":"Introduction to Graphs","5.2":"Graph Terminology","5.3":"Types of Graphs","5.4":"Subgraphs and Paths","5.5":"Degree of a Vertex","5.6":"Graph ADT","5.7":"Graph Representations","5.8":"Adjacency Matrix","5.9":"Adjacency List","5.10":"Adjacency Multilist","5.11":"Graph Traversal","5.12":"Depth First Search","5.13":"Breadth First Search","5.14":"Spanning Trees","5.15":"Minimum Cost Spanning Tree","5.16":"Kruskal's Algorithm","5.17":"Prim's Algorithm","5.18":"Single Source Shortest Path","5.19":"All Pairs Shortest Path","5.20":"Transitive Closure"},
-    "UNIT VI":{"6.1":"Python Standard Library","6.2":"OS Interface","6.3":"OS Module Functions","6.4":"String Pattern Matching","6.5":"Regex Functions","6.6":"Regex Patterns","6.7":"Math Functions","6.8":"Internet Access","6.9":"Date and Time","6.10":"Calendar Module","6.11":"Data Compression","6.12":"Multithreading","6.13":"Thread Module","6.14":"Threading Module","6.15":"Thread Synchronization","6.16":"GUI Programming","6.17":"Tkinter Widgets","6.18":"Menu & Event Handling","6.19":"Turtle Graphics","6.20":"Turtle Operations","6.21":"Software Testing","6.22":"Unit Testing","6.23":"Writing Test Cases"}
+  "UNIT I": {
+    "1.1": "Introduction to Algorithms",
+    "1.2": "Reduction Technique",
+    "1.3": "Recursion Concept",
+    "1.4": "Recursive Algorithms",
+    "1.5": "Tower of Hanoi",
+    "1.6": "Divide and Conquer",
+    "1.7": "Merge Sort",
+    "1.8": "Quick Sort"
+  },
+
+  "UNIT II": {
+    "2.1": "Introduction to Stack",
+    "2.2": "Stack Operations",
+    "2.3": "Stack Overflow and Underflow",
+    "2.4": "Stack Implementation (Array)",
+    "2.5": "Stack Implementation (Linked List)",
+    "2.6": "Applications of Stack",
+    "2.7": "Expressions and Notations",
+    "2.8": "Infix to Postfix Conversion",
+    "2.9": "Introduction to Queue",
+    "2.10": "Queue Operations",
+    "2.11": "Types of Queue",
+    "2.12": "Applications of Queue"
+  },
+
+  "UNIT III": {
+    "3.1": "Introduction to Linked List",
+    "3.2": "Advantages and Disadvantages",
+    "3.3": "Types of Linked Lists",
+    "3.4": "Node Structure",
+    "3.5": "Creation of Linked List",
+    "3.6": "Traversal of Linked List",
+    "3.7": "Insertion in Linked List",
+    "3.8": "Deletion in Linked List",
+    "3.9": "Applications of Linked List"
+  },
+
+  "UNIT IV": {
+    "4.1": "Introduction to Trees",
+    "4.2": "Tree Terminology",
+    "4.3": "Tree Properties",
+    "4.4": "Tree Representations",
+    "4.5": "Binary Trees",
+    "4.6": "Types of Binary Trees",
+    "4.7": "Binary Tree ADT",
+    "4.8": "Properties of Binary Trees",
+    "4.9": "Binary Tree Representation",
+    "4.10": "Binary Tree Traversals",
+    "4.11": "Level Order Traversal",
+    "4.12": "Binary Search Trees",
+    "4.13": "BST Searching",
+    "4.14": "BST Insertion",
+    "4.15": "BST Deletion",
+    "4.16": "Height of BST"
+  },
+
+  "UNIT V": {
+    "5.1": "Introduction to Graphs",
+    "5.2": "Graph Terminology",
+    "5.3": "Types of Graphs",
+    "5.4": "Subgraphs and Paths",
+    "5.5": "Degree of a Vertex",
+    "5.6": "Graph ADT",
+    "5.7": "Graph Representations",
+    "5.8": "Adjacency Matrix",
+    "5.9": "Adjacency List",
+    "5.10": "Adjacency Multilist",
+    "5.11": "Graph Traversal",
+    "5.12": "Depth First Search",
+    "5.13": "Breadth First Search",
+    "5.14": "Spanning Trees",
+    "5.15": "Minimum Spanning Tree",
+    "5.16": "Kruskal Algorithm",
+    "5.17": "Prim Algorithm",
+    "5.18": "Single Source Shortest Path",
+    "5.19": "All Pairs Shortest Path",
+    "5.20": "Transitive Closure"
+  },
+
+  "UNIT VI": {
+    "6.1": "Python Standard Library",
+    "6.2": "Operating System Interface",
+    "6.3": "OS Module Functions",
+    "6.4": "String Pattern Matching",
+    "6.5": "Regex Functions",
+    "6.6": "Regex Patterns",
+    "6.7": "Mathematical Functions",
+    "6.8": "Internet Access",
+    "6.9": "Date and Time",
+    "6.10": "Calendar Module",
+    "6.11": "Data Compression",
+    "6.12": "Multithreading",
+    "6.13": "Thread Module",
+    "6.14": "Threading Module",
+    "6.15": "Thread Synchronization",
+    "6.16": "GUI Programming",
+    "6.17": "Tkinter Widgets",
+    "6.18": "Menu and Event Handling",
+    "6.19": "Turtle Graphics",
+    "6.20": "Turtle Operations",
+    "6.21": "Software Testing",
+    "6.22": "Unit Testing",
+    "6.23": "Writing Test Cases"
+  }
 };
+
 const UNIT_MAP={"I":"U1","II":"U2","III":"U3","IV":"U4","V":"U5","VI":"U6"};
 const SECTIONS=["U1","U2","U3","U4","U5","U6"];
 

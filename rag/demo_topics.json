@@ -1,4 +1,128 @@
 {
+  "UNIT I": {
+    "1.1": {
+      "title": "Introduction to Algorithms",
+      "keywords": ["algorithm", "problem solving", "efficiency", "steps"]
+    },
+    "1.2": {
+      "title": "Reduction Technique",
+      "keywords": ["reduction", "problem transformation", "subproblem", "algorithm design"]
+    },
+    "1.3": {
+      "title": "Recursion Concept",
+      "keywords": ["recursion", "base case", "recursive case", "function calls"]
+    },
+    "1.4": {
+      "title": "Recursive Algorithms",
+      "keywords": ["recursive solution", "self-calling function", "termination condition"]
+    },
+    "1.5": {
+      "title": "Tower of Hanoi",
+      "keywords": ["tower of hanoi", "recursive problem", "disk movement", "pegs"]
+    },
+    "1.6": {
+      "title": "Divide and Conquer",
+      "keywords": ["divide and conquer", "split problem", "merge results"]
+    },
+    "1.7": {
+      "title": "Merge Sort",
+      "keywords": ["merge sort", "sorting algorithm", "recursion", "O(n log n)"]
+    },
+    "1.8": {
+      "title": "Quick Sort",
+      "keywords": ["quick sort", "pivot", "partition", "divide and conquer"]
+    }
+  },
+
+  "UNIT II": {
+    "2.1": {
+      "title": "Introduction to Stack",
+      "keywords": ["stack", "LIFO", "data structure", "top"]
+    },
+    "2.2": {
+      "title": "Stack Operations",
+      "keywords": ["push", "pop", "peek", "stack operations"]
+    },
+    "2.3": {
+      "title": "Stack Overflow and Underflow",
+      "keywords": ["overflow", "underflow", "stack limits"]
+    },
+    "2.4": {
+      "title": "Array Implementation of Stack",
+      "keywords": ["array stack", "static implementation", "index", "top pointer"]
+    },
+    "2.5": {
+      "title": "Linked List Implementation of Stack",
+      "keywords": ["linked stack", "dynamic memory", "pointer", "node"]
+    },
+    "2.6": {
+      "title": "Applications of Stack",
+      "keywords": ["function calls", "expression evaluation", "recursion"]
+    },
+    "2.7": {
+      "title": "Expressions and Notations",
+      "keywords": ["infix", "prefix", "postfix", "expression"]
+    },
+    "2.8": {
+      "title": "Infix to Postfix Conversion",
+      "keywords": ["conversion", "stack usage", "operator precedence"]
+    },
+    "2.9": {
+      "title": "Introduction to Queue",
+      "keywords": ["queue", "FIFO", "data structure", "front", "rear"]
+    },
+    "2.10": {
+      "title": "Queue Operations",
+      "keywords": ["enqueue", "dequeue", "queue operations"]
+    },
+    "2.11": {
+      "title": "Types of Queue",
+      "keywords": ["circular queue", "priority queue", "deque"]
+    },
+    "2.12": {
+      "title": "Applications of Queue",
+      "keywords": ["scheduling", "buffer", "simulation"]
+    }
+  },
+
+  "UNIT III": {
+    "3.1": {
+      "title": "Introduction to Linked List",
+      "keywords": ["linked list", "dynamic structure", "nodes", "pointers"]
+    },
+    "3.2": {
+      "title": "Advantages and Disadvantages",
+      "keywords": ["dynamic memory", "flexibility", "limitations"]
+    },
+    "3.3": {
+      "title": "Types of Linked Lists",
+      "keywords": ["singly linked list", "doubly linked list", "circular linked list"]
+    },
+    "3.4": {
+      "title": "Node Structure",
+      "keywords": ["data field", "next pointer", "node structure"]
+    },
+    "3.5": {
+      "title": "Creation of Linked List",
+      "keywords": ["malloc", "node creation", "initialization"]
+    },
+    "3.6": {
+      "title": "Traversal of Linked List",
+      "keywords": ["traversing", "iteration", "access elements"]
+    },
+    "3.7": {
+      "title": "Insertion Operations",
+      "keywords": ["insert at beginning", "insert at end", "insert at position"]
+    },
+    "3.8": {
+      "title": "Deletion Operations",
+      "keywords": ["delete node", "remove element", "memory free"]
+    },
+    "3.9": {
+      "title": "Applications of Linked List",
+      "keywords": ["polynomial representation", "dynamic storage", "data handling"]
+    }
+  },
   "UNIT IV": {
     "4.1": {
       "title": "Introduction to Trees",

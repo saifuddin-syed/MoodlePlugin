@@ -103,7 +103,6 @@ div[data-region="blocks-column"],
 .sa-nav-left  { display: flex; align-items: center; gap: 12px; }
 .sa-nav-right { display: flex; align-items: center; gap: 10px; }
 
-/* Back button */
 .back-btn {
     display: inline-flex;
     align-items: center;
@@ -137,21 +136,17 @@ div[data-region="blocks-column"],
 }
 .nav-ts { font-family: var(--mono); font-size: 10px; color: var(--hint); }
 
-/* ── Body: masonry-style using CSS columns or explicit grid ── */
+/* ── Body ── */
 .sa-body {
     padding: 18px 24px 60px;
     display: grid;
-    /* 3-col: left sidebar | centre | right sidebar */
     grid-template-columns: 248px 1fr 268px;
     gap: 12px;
     align-items: start;
 }
 
-/* Left column — stacks naturally */
 .col-left  { grid-column: 1; display: flex; flex-direction: column; gap: 12px; }
-/* Centre column */
 .col-mid   { grid-column: 2; display: flex; flex-direction: column; gap: 12px; }
-/* Right column */
 .col-right { grid-column: 3; display: flex; flex-direction: column; gap: 12px; }
 
 /* ── Card ── */
@@ -176,7 +171,6 @@ div[data-region="blocks-column"],
     grid-template-columns: 1fr 1fr;
     gap: 8px;
 }
-/* Make accuracy span full width */
 .metric-full { grid-column: 1 / -1; }
 
 .metric {
@@ -199,7 +193,7 @@ div[data-region="blocks-column"],
 .metric-val   { font-size: 20px; font-weight: 600; font-family: var(--mono); line-height: 1; letter-spacing: -.02em; }
 .metric-sub   { font-size: 10px; color: var(--hint); margin-top: 3px; }
 
-/* ── Charts: 2×2 grid ── */
+/* ── Charts ── */
 .charts-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -406,23 +400,19 @@ div[data-region="blocks-column"],
     <!-- ══ LEFT ══ -->
     <div class="col-left">
 
-        <!-- Performance Index hero card -->
         <div class="pi-card" id="piCard">
             <div class="loading"><div class="spinner"></div><span>Computing performance index…</span></div>
         </div>
 
-        <!-- Metric cards in 2×n mini-grid -->
         <div class="metrics-grid" id="metricsList">
             <div class="metric metric-full"><div class="loading"><div class="spinner"></div></div></div>
         </div>
 
-        <!-- Sections to focus on -->
         <div class="card">
             <div class="card-title">🎯 Sections to focus on</div>
             <div id="weakSections"><div class="loading"><div class="spinner"></div></div></div>
         </div>
 
-        <!-- Key insights -->
         <div class="card">
             <div class="card-title">💡 Key insights</div>
             <div id="insightsPanel"><div class="loading"><div class="spinner"></div></div></div>
@@ -433,7 +423,6 @@ div[data-region="blocks-column"],
     <!-- ══ CENTRE ══ -->
     <div class="col-mid">
 
-        <!-- 2×2 charts -->
         <div>
             <div class="sh">Performance overview</div>
             <div class="charts-grid">
@@ -456,13 +445,11 @@ div[data-region="blocks-column"],
             </div>
         </div>
 
-        <!-- Heatmap -->
         <div class="card">
             <div class="card-title">🌡 Score heatmap — unit × difficulty</div>
             <div id="heatmapWrap"><div class="loading"><div class="spinner"></div></div></div>
         </div>
 
-        <!-- Topic drill-down -->
         <div class="card">
             <div class="card-title">🔍 Topic drill-down</div>
             <div class="filters">
@@ -489,7 +476,6 @@ div[data-region="blocks-column"],
             <div id="sectionTableWrap"><div class="loading"><div class="spinner"></div></div></div>
         </div>
 
-        <!-- Attempt log -->
         <div class="card">
             <div class="card-title">📋 Quiz attempt log</div>
             <div class="ag ag-head">
@@ -504,23 +490,15 @@ div[data-region="blocks-column"],
     <!-- ══ RIGHT ══ -->
     <div class="col-right">
 
-        <!-- Recommendations -->
         <div class="card">
             <div class="card-title">✨ Personalised recommendations</div>
             <div id="recoList"><div class="loading"><div class="spinner"></div></div></div>
         </div>
 
-        <!-- Strongest areas -->
         <div class="card">
             <div class="card-title">⚡ Strongest areas</div>
             <div id="strongSections"><div class="loading"><div class="spinner"></div></div></div>
         </div>
-
-        <!-- Teacher advice
-        <div class="card">
-            <div class="card-title">📝 Teacher advice</div>
-            <div id="adviceList"><div class="loading"><div class="spinner"></div></div></div>
-        </div> -->
 
     </div><!-- /col-right -->
 
@@ -544,20 +522,115 @@ const SECTIONS  = ["U1","U2","U3","U4","U5","U6"];
 Chart.defaults.font.family = "'DM Sans', system-ui, sans-serif";
 Chart.defaults.color       = '#6B6B6B';
 
-let ALL_QUIZ=[], TOPIC_DATA={}, SECTION_DATA={}, TREND_DATA=[];
+let ALL_QUIZ=[], TOPIC_DATA={}, SECTION_DATA={}, TREND_DATA=[], FLAT=[];
 
+/* ─────────────────────────────────────────────────────────────────────────────
+   resolveUnits(quiz)
+   Returns every short unit key (e.g. ["U4","U5","U6"]) that a quiz attempt
+   should be credited to, using a layered detection strategy:
+
+   1. Scan for every "UNIT <roman>" occurrence in topic+unit string (global)
+   2. Section-number prefix match  (4.x → U4,  5.x → U5,  6.x → U6)
+   3. Keyword match against each unit's topic titles (fallback when no tags)
+───────────────────────────────────────────────────────────────────────────── */
+function resolveUnits(q) {
+    const rawStr = ((q.topic || '') + ' ' + (q.unit || '')).toUpperCase();
+    const text   = rawStr.toLowerCase();
+    const found  = new Set();
+
+    // ── 1: scan for every UNIT <roman> occurrence ──────────────────────────
+    const unitRegex = /UNIT\s+(VI|IV|V|III|II|I)/g;
+    let m;
+    while ((m = unitRegex.exec(rawStr)) !== null) {
+        const key = UNIT_MAP[m[1]];
+        if (key) found.add(key);
+    }
+
+    // ── 2: section-number prefix  e.g. "4.1", "5.12", "6.3" ───────────────
+    const secRegex = /\b([4-6])\.\d+/g;
+    while ((m = secRegex.exec(text)) !== null) {
+        const map = {'4':'U4','5':'U5','6':'U6'};
+        if (map[m[1]]) found.add(map[m[1]]);
+    }
+
+    // ── 3: keyword match against topic titles (only when still empty) ──────
+    if (found.size === 0) {
+        Object.entries(DEMO_TOPICS).forEach(([unitName, secs]) => {
+            const shortKey = UNIT_MAP[unitName.replace('UNIT ', '').trim()] || null;
+            if (!shortKey) return;
+            Object.values(secs).forEach(title => {
+                const fw = title.toLowerCase().split(' ')[0];
+                if (fw.length > 4 && text.includes(fw)) found.add(shortKey);
+                if (text.includes(title.toLowerCase()))  found.add(shortKey);
+            });
+        });
+    }
+
+    return [...found];
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   buildState(data)
+   Credits every quiz attempt to ALL resolved units so that a cross-unit quiz
+   is reflected in every relevant unit's heatmap, radar, and breakdown panels.
+───────────────────────────────────────────────────────────────────────────── */
 function buildState(data) {
     ALL_QUIZ = data;
-    SECTIONS.forEach(s=>{ TOPIC_DATA[s]={easy:{a:0,s:0,t:0},medium:{a:0,s:0,t:0},hard:{a:0,s:0,t:0}}; });
-    Object.keys(DEMO_TOPICS).forEach(u=>{ SECTION_DATA[u]={}; Object.keys(DEMO_TOPICS[u]).forEach(sec=>{ SECTION_DATA[u][sec]={attempts:0,score:0,total:0}; }); });
-    data.forEach(q=>{
-        const diff=(q.difficulty||"").toLowerCase(), topic=(q.topic||"").toUpperCase();
-        const roman=topic.match(/UNIT\s+(VI|IV|V|III|II|I)/)?.[1];
-        if (roman) { const u=UNIT_MAP[roman]; if(u&&TOPIC_DATA[u]?.[diff]){TOPIC_DATA[u][diff].a++;TOPIC_DATA[u][diff].s+=parseInt(q.score)||0;TOPIC_DATA[u][diff].t+=parseInt(q.total)||0;} }
-        Object.entries(DEMO_TOPICS).forEach(([unit,secs])=>{ Object.entries(secs).forEach(([sec,title])=>{ const tl=(q.topic||"").toLowerCase(),ttl=title.toLowerCase(),fw=ttl.split(" ")[0]; if(tl.includes(ttl)||tl.includes(sec)||(fw.length>4&&tl.includes(fw))){SECTION_DATA[unit][sec].attempts++;SECTION_DATA[unit][sec].score+=parseInt(q.score)||0;SECTION_DATA[unit][sec].total+=parseInt(q.total)||0;} }); });
-        if(q.timecreated&&parseInt(q.total||0)>0) TREND_DATA.push({ts:parseInt(q.timecreated),pct:Math.round((parseInt(q.score)||0)/(parseInt(q.total)||1)*100)});
+
+    // Initialise per-unit difficulty buckets
+    SECTIONS.forEach(s => {
+        TOPIC_DATA[s] = { easy:{a:0,s:0,t:0}, medium:{a:0,s:0,t:0}, hard:{a:0,s:0,t:0} };
     });
-    TREND_DATA.sort((a,b)=>a.ts-b.ts);
+
+    // Initialise per-section accumulators
+    Object.keys(DEMO_TOPICS).forEach(u => {
+        SECTION_DATA[u] = {};
+        Object.keys(DEMO_TOPICS[u]).forEach(sec => {
+            SECTION_DATA[u][sec] = { attempts:0, score:0, total:0 };
+        });
+    });
+
+    data.forEach(q => {
+        const diff  = (q.difficulty || '').toLowerCase();
+        const score = parseInt(q.score) || 0;
+        const total = parseInt(q.total) || 0;
+
+        // ── Credit TOPIC_DATA for every resolved unit ──────────────────────
+        const units = resolveUnits(q);
+        units.forEach(u => {
+            if (TOPIC_DATA[u]?.[diff]) {
+                TOPIC_DATA[u][diff].a++;
+                TOPIC_DATA[u][diff].s += score;
+                TOPIC_DATA[u][diff].t += total;
+            }
+        });
+
+        // ── Credit SECTION_DATA: match against every topic title ───────────
+        // Already unit-agnostic by design — a quiz whose topic text matches
+        // titles in multiple units naturally lands in all of them.
+        Object.entries(DEMO_TOPICS).forEach(([unit, secs]) => {
+            Object.entries(secs).forEach(([sec, title]) => {
+                const tl  = (q.topic || '').toLowerCase();
+                const ttl = title.toLowerCase();
+                const fw  = ttl.split(' ')[0];
+                if (tl.includes(ttl) || tl.includes(sec) || (fw.length > 4 && tl.includes(fw))) {
+                    SECTION_DATA[unit][sec].attempts++;
+                    SECTION_DATA[unit][sec].score += score;
+                    SECTION_DATA[unit][sec].total += total;
+                }
+            });
+        });
+
+        // ── Trend data ─────────────────────────────────────────────────────
+        if (q.timecreated && total > 0) {
+            TREND_DATA.push({
+                ts:  parseInt(q.timecreated),
+                pct: Math.round(score / total * 100)
+            });
+        }
+    });
+
+    TREND_DATA.sort((a, b) => a.ts - b.ts);
 }
 
 function statusOf(p){ if(p===null)return{label:"Not Attempted",cls:"bm",color:"#A8A8A8"};if(p<40)return{label:"Weak",cls:"bw",color:"#E24B4A"};if(p<70)return{label:"Average",cls:"ba",color:"#EF9F27"};return{label:"Strong",cls:"bs",color:"#639922"}; }
@@ -566,14 +639,7 @@ function unitPct(u){ const d=TOPIC_DATA[u],s=d.easy.s+d.medium.s+d.hard.s,t=d.ea
 
 /* ────────────────────────────────────────────────────
    PERFORMANCE INDEX  (0–100)
-   Weighted composite of 6 dimensions:
-     1. Raw Accuracy       30% — overall marks scored / total
-     2. Section Coverage   20% — % of all sections ever attempted
-     3. Mastery Quality    20% — % of attempted sections that are Strong (≥70%)
-     4. Consistency        15% — score stability over last 10 attempts
-     5. Difficulty Bonus   10% — hard-question accuracy (0 if none attempted)
-     6. Recency Trend       5% — recent momentum (last 5 vs previous 5)
-──────────────────────────────────────────────────── */
+────────────────────────────────────────────────────── */
 function computePI() {
     const tS=ALL_QUIZ.reduce((a,q)=>a+(parseInt(q.score)||0),0);
     const tM=ALL_QUIZ.reduce((a,q)=>a+(parseInt(q.total)||0),0);
@@ -590,13 +656,13 @@ function computePI() {
 
     const hT=SECTIONS.reduce((a,u)=>a+TOPIC_DATA[u].hard.t,0);
     const hS=SECTIONS.reduce((a,u)=>a+TOPIC_DATA[u].hard.s,0);
-    const hardAcc = hT>0 ? hS/hT*100 : rawAcc*0.5; // penalise if never attempted hard
+    const hardAcc = hT>0 ? hS/hT*100 : rawAcc*0.5;
 
     const first5=TREND_DATA.slice(-10,-5).map(d=>d.pct), last5=TREND_DATA.slice(-5).map(d=>d.pct);
     const avg5=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:null;
     const f5=avg5(first5), l5=avg5(last5);
-    let trend=50; // neutral
-    if(f5!==null&&l5!==null){ const delta=l5-f5; trend=Math.min(100,Math.max(0,50+delta)); }
+    let trend=50;
+    if(f5!==null&&l5!==null){ trend=Math.min(100,Math.max(0,50+(l5-f5))); }
     else if(l5!==null){ trend=l5; }
 
     const pi =  rawAcc    * 0.30
@@ -609,12 +675,12 @@ function computePI() {
     return {
         score: Math.round(Math.min(100, Math.max(0, pi))),
         factors: [
-            { name:"Raw accuracy",   val:Math.round(rawAcc),    weight:30, score:Math.round(rawAcc*0.30) },
-            { name:"Coverage",       val:Math.round(coverage),  weight:20, score:Math.round(coverage*0.20) },
-            { name:"Mastery quality",val:Math.round(mastery),   weight:20, score:Math.round(mastery*0.20) },
-            { name:"Consistency",    val:Math.round(consistency),weight:15, score:Math.round(consistency*0.15) },
-            { name:"Hard accuracy",  val:Math.round(hardAcc),   weight:10, score:Math.round(hardAcc*0.10) },
-            { name:"Recent trend",   val:Math.round(trend),     weight:5,  score:Math.round(trend*0.05) },
+            { name:"Raw accuracy",    val:Math.round(rawAcc),     weight:30 },
+            { name:"Coverage",        val:Math.round(coverage),   weight:20 },
+            { name:"Mastery quality", val:Math.round(mastery),    weight:20 },
+            { name:"Consistency",     val:Math.round(consistency),weight:15 },
+            { name:"Hard accuracy",   val:Math.round(hardAcc),    weight:10 },
+            { name:"Recent trend",    val:Math.round(trend),      weight:5  },
         ]
     };
 }
@@ -626,19 +692,16 @@ function renderPI() {
     }
     const {score, factors} = computePI();
 
-    // colour ramp
-    const piColor = score>=80?"#639922":score>=60?"#378ADD":score>=40?"#EF9F27":"#E24B4A";
-    const piGlow  = score>=80?"#C0DD97":score>=60?"#85B7EB":score>=40?"#FAC775":"#F09595";
-    const piRank  = score>=85?"Elite":score>=70?"Proficient":score>=55?"Developing":score>=40?"Foundational":"Needs Work";
+    const piColor   = score>=80?"#639922":score>=60?"#378ADD":score>=40?"#EF9F27":"#E24B4A";
+    const piGlow    = score>=80?"#C0DD97":score>=60?"#85B7EB":score>=40?"#FAC775":"#F09595";
+    const piRank    = score>=85?"Elite":score>=70?"Proficient":score>=55?"Developing":score>=40?"Foundational":"Needs Work";
     const piTagline = score>=85?"Outstanding performance across all dimensions":
                       score>=70?"Strong foundation with clear strengths":
                       score>=55?"Good progress — focus on coverage and mastery":
                       score>=40?"Building momentum — keep practising regularly":
                       "Start with more quizzes to improve your index";
 
-    // SVG ring  r=28 → circumference ≈ 175.9
-    const R=28, C=2*Math.PI*R;
-    const dash=Math.round(C*score/100);
+    const R=28, C=2*Math.PI*R, dash=Math.round(C*score/100);
 
     document.getElementById("piCard").style.setProperty("--pi-glow", piGlow);
     document.getElementById("piCard").innerHTML=`
@@ -673,7 +736,6 @@ function renderPI() {
             </div>`).join("")}
         </div>`;
 
-    // Animate ring and bars after paint
     requestAnimationFrame(()=>requestAnimationFrame(()=>{
         const ring=document.getElementById("piRingFill");
         if(ring) ring.style.strokeDashoffset = C - dash;
@@ -699,13 +761,13 @@ function renderMetrics() {
 
     const acOf=a=>a>=70?"#639922":a>=40?"#EF9F27":"#E24B4A";
     const kpis=[
-        {icon:"🎯",label:"Overall Accuracy",  val:acc+"%",            sub:tS+"/"+tM+" marks",          accent:acOf(acc), full:true},
-        {icon:"📚",label:"Total Attempts",     val:ALL_QUIZ.length,    sub:"quizzes taken",             accent:"#7F77DD"},
-        {icon:"🗺", label:"Coverage",           val:pcts.length+"/"+totalSec, sub:"sections attempted", accent:"#378ADD"},
-        {icon:"🔥",label:"Study Streak",       val:streak+"d",         sub:"consecutive days",          accent:"#EF9F27"},
-        {icon:"📈",label:"Consistency",        val:con+"%",            sub:"score stability",            accent:"#1B9E9E"},
-        {icon:"📉",label:"Weak Sections",      val:wk,                 sub:"below 40%",                 accent:"#E24B4A"},
-        {icon:"⭐",label:"Strong Sections",    val:sk,                 sub:"above 70%",                 accent:"#639922"},
+        {icon:"🎯",label:"Overall Accuracy",  val:acc+"%",                  sub:tS+"/"+tM+" marks",          accent:acOf(acc), full:true},
+        {icon:"📚",label:"Total Attempts",     val:ALL_QUIZ.length,          sub:"quizzes taken",             accent:"#7F77DD"},
+        {icon:"🗺", label:"Coverage",           val:pcts.length+"/"+totalSec, sub:"sections attempted",       accent:"#378ADD"},
+        {icon:"🔥",label:"Study Streak",       val:streak+"d",               sub:"consecutive days",          accent:"#EF9F27"},
+        {icon:"📈",label:"Consistency",        val:con+"%",                  sub:"score stability",           accent:"#1B9E9E"},
+        {icon:"📉",label:"Weak Sections",      val:wk,                       sub:"below 40%",                 accent:"#E24B4A"},
+        {icon:"⭐",label:"Strong Sections",    val:sk,                       sub:"above 70%",                 accent:"#639922"},
     ];
     document.getElementById("metricsList").innerHTML = kpis.map((k,i)=>`
         <div class="metric fi${k.full?' metric-full':''}" style="--accent:${k.accent};animation-delay:${i*40}ms">
@@ -755,8 +817,15 @@ function renderHeatmap() {
     document.getElementById("heatmapWrap").innerHTML=html;
 }
 
-let FLAT=[];
-function buildFlat(){ FLAT=[]; Object.entries(DEMO_TOPICS).forEach(([unit,secs])=>{ Object.entries(secs).forEach(([sec,title])=>{ const d=SECTION_DATA[unit][sec],p=d.total>0?Math.round(d.score/d.total*100):null,st=statusOf(p); FLAT.push({unit,sec,title,...d,pct:p,status:st.label,cls:st.cls,color:st.color}); }); }); }
+function buildFlat(){
+    FLAT=[];
+    Object.entries(DEMO_TOPICS).forEach(([unit,secs])=>{
+        Object.entries(secs).forEach(([sec,title])=>{
+            const d=SECTION_DATA[unit][sec],p=d.total>0?Math.round(d.score/d.total*100):null,st=statusOf(p);
+            FLAT.push({unit,sec,title,...d,pct:p,status:st.label,cls:st.cls,color:st.color});
+        });
+    });
+}
 
 function renderWeakStrong() {
     const att=FLAT.filter(r=>r.pct!==null);
@@ -766,7 +835,6 @@ function renderWeakStrong() {
 }
 
 function renderInsights() {
-    const tS=ALL_QUIZ.reduce((a,q)=>a+(parseInt(q.score)||0),0),tM=ALL_QUIZ.reduce((a,q)=>a+(parseInt(q.total)||0),0);
     const att=FLAT.filter(r=>r.pct!==null);
     const avgSec=att.length?Math.round(att.reduce((a,r)=>a+r.pct,0)/att.length):0;
     const us=SECTIONS.map(u=>({unit:u,pct:unitPct(u)})).filter(u=>u.pct!==null).sort((a,b)=>b.pct-a.pct);
@@ -775,10 +843,10 @@ function renderInsights() {
     const hAcc=hT>0?Math.round(hS/hT*100):null;
     const r5=TREND_DATA.slice(-5).map(d=>d.pct),tr=r5.length>=2?r5[r5.length-1]-r5[0]:0;
     const rows=[
-        {val:avgSec+"%", label:"Avg section score",   sub:"across attempted",       color:"#7F77DD"},
-        {val:best.unit,   label:"Strongest unit",      sub:`${best.pct}% accuracy`, color:"#639922"},
-        {val:worst.unit,  label:"Needs most work",     sub:`${worst.pct}% accuracy`,color:"#E24B4A"},
-        {val:hAcc!==null?hAcc+"%":"—", label:"Hard accuracy",  sub:`${hS}/${hT} marks`,color:"#EF9F27"},
+        {val:avgSec+"%",  label:"Avg section score",   sub:"across attempted",       color:"#7F77DD"},
+        {val:best.unit,   label:"Strongest unit",       sub:`${best.pct}% accuracy`,  color:"#639922"},
+        {val:worst.unit,  label:"Needs most work",      sub:`${worst.pct}% accuracy`, color:"#E24B4A"},
+        {val:hAcc!==null?hAcc+"%":"—", label:"Hard accuracy", sub:`${hS}/${hT} marks`, color:"#EF9F27"},
         {val:(tr>0?"↑ ":tr<0?"↓ ":"→ ")+Math.abs(Math.round(tr))+"%", label:"Recent trend", sub:"last 5 attempts", color:tr>5?"#639922":tr<-5?"#E24B4A":"#6B6B6B"},
         {val:FLAT.filter(r=>r.pct===null).length, label:"Not attempted yet", sub:"of "+FLAT.length+" total", color:"#378ADD"},
     ];
@@ -786,14 +854,14 @@ function renderInsights() {
 }
 
 function renderRecos() {
-    const tS=ALL_QUIZ.reduce((a,q)=>a+(parseInt(q.score)||0),0),tM=ALL_QUIZ.reduce((a,q)=>a+(parseInt(q.total)||0),0);
     const att=FLAT.filter(r=>r.pct!==null),na=FLAT.filter(r=>r.pct===null);
     const wk=att.filter(r=>r.pct<40).sort((a,b)=>a.pct-b.pct),av=att.filter(r=>r.pct>=40&&r.pct<70).sort((a,b)=>a.pct-b.pct),sk=att.filter(r=>r.pct>=70);
     const hT=SECTIONS.reduce((a,u)=>a+TOPIC_DATA[u].hard.t,0),hS=SECTIONS.reduce((a,u)=>a+TOPIC_DATA[u].hard.s,0),hAcc=hT>0?Math.round(hS/hT*100):null;
     const r5=TREND_DATA.slice(-5).map(d=>d.pct),tr=r5.length>=2?r5[r5.length-1]-r5[0]:0;
     const recos=[];
-    if (!ALL_QUIZ.length) { recos.push({type:"👋 Getting started",title:"No attempts yet",body:"Take quizzes to unlock recommendations tailored to your performance.",stripe:"#378ADD"}); }
-    else {
+    if (!ALL_QUIZ.length) {
+        recos.push({type:"👋 Getting started",title:"No attempts yet",body:"Take quizzes to unlock recommendations tailored to your performance.",stripe:"#378ADD"});
+    } else {
         if(wk.length) recos.push({type:"🚨 Priority action",title:`Revise ${wk.length} weak section${wk.length>1?"s":""}`,body:`Start with "${wk[0].title}" (${wk[0].pct}%). These need the most attention.`,stripe:"#E24B4A"});
         if(na.length) recos.push({type:"📌 Coverage gap",title:`${na.length} section${na.length>1?"s":""} never attempted`,body:`Try "${na[0].title}"${na.length>1?` and "${na[1].title}"`:""}. Broader coverage builds stronger understanding.`,stripe:"#EF9F27"});
         if(av.length) recos.push({type:"📈 Growth opportunity",title:`Lift ${av.length} average section${av.length>1?"s":""} to Strong`,body:`"${av[0].title}" at ${av[0].pct}% is just ${70-av[0].pct}% away from Strong. One review session can push it over.`,stripe:"#378ADD"});
@@ -825,16 +893,12 @@ function renderAttemptLog() {
     const dc={easy:"bs",medium:"ba",hard:"bw"};
     document.getElementById("attemptLog").innerHTML=[...ALL_QUIZ].sort((a,b)=>(parseInt(b.timecreated)||0)-(parseInt(a.timecreated)||0)).map(q=>{
         const d=(q.difficulty||"").toLowerCase(),sc=parseInt(q.score)||0,tot=parseInt(q.total)||0,pct=tot>0?Math.round(sc/tot*100):0;
-        return `<div class="ag ag-row"><span style="font-size:11px">${q.topic||"—"}</span><span style="font-size:10px;color:var(--muted);font-family:var(--mono)">${q.unit||"—"}</span><span><span class="badge ${dc[d]||"bm"}">${d||"—"}</span></span><span style="font-family:var(--mono);font-size:11px">${sc}/${tot}</span><span style="font-family:var(--mono);font-size:11px;color:${statusOf(pct).color}">${pct}%</span></div>`;
+        // Show all resolved units for cross-unit quizzes
+        const resolvedUnits = resolveUnits(q);
+        const unitDisplay = resolvedUnits.length > 0 ? resolvedUnits.join(', ') : (q.unit || '—');
+        return `<div class="ag ag-row"><span style="font-size:11px">${q.topic||"—"}</span><span style="font-size:10px;color:var(--muted);font-family:var(--mono)">${unitDisplay}</span><span><span class="badge ${dc[d]||"bm"}">${d||"—"}</span></span><span style="font-family:var(--mono);font-size:11px">${sc}/${tot}</span><span style="font-family:var(--mono);font-size:11px;color:${statusOf(pct).color}">${pct}%</span></div>`;
     }).join("");
 }
-
-// function loadAdvice() {
-//     moodlePost("get_advice").then(data=>{
-//         if(!data||!data.length){document.getElementById("adviceList").innerHTML=`<p style="font-size:11px;color:var(--hint)">No advice from your teacher yet.</p>`;return;}
-//         document.getElementById("adviceList").innerHTML=data.map(a=>`<div style="border-left:3px solid var(--blue);background:var(--blue-bg);padding:8px 12px;border-radius:0 6px 6px 0;margin-bottom:8px;font-size:12px;line-height:1.5">${a.advice}<br><small style="color:var(--hint);font-size:10px">${new Date(a.timecreated*1000).toLocaleString()}</small></div>`).join("");
-//     }).catch(()=>{ document.getElementById("adviceList").innerHTML=`<p style="font-size:11px;color:var(--hint)">No advice yet.</p>`; });
-// }
 
 function moodlePost(action,extra={}) {
     return fetch(M.cfg.wwwroot+"/local/automation/analytics_ajax.php",{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},body:new URLSearchParams({action,studentid,courseid,sesskey:M.cfg.sesskey,...extra})}).then(r=>r.json());
@@ -842,17 +906,16 @@ function moodlePost(action,extra={}) {
 
 moodlePost("get_student_quiz").then(data=>{
     buildState(data);
+    buildFlat();
     renderMetrics();
     renderCharts();
     renderHeatmap();
-    buildFlat();
     renderPI();
     renderWeakStrong();
     renderInsights();
     renderRecos();
     filterSections();
     renderAttemptLog();
-    // loadAdvice();
 });
 </script>
 

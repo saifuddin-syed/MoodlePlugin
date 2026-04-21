@@ -469,7 +469,14 @@ body { padding: 0 !important; margin: 0 !important; }
 <!-- ════ NAV ════ -->
 <div class="qa-nav">
     <div class="qa-nav-left">
-        <a class="back-btn" href="javascript:history.back()">
+        <<a class="back-btn" href="javascript:void(0)" onclick="
+            if (sessionStorage.getItem('from_quiz_attempt') === '1') {
+                sessionStorage.removeItem('from_quiz_attempt');
+                window.location.href = '<?php echo new moodle_url('/course/view.php', ['id' => $courseid]); ?>';
+            } else {
+                history.back();
+            }
+        ">
             <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"
                  stroke-linecap="round" stroke-linejoin="round">
                 <path d="M10 3L5 8l5 5"/>

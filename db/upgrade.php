@@ -151,5 +151,57 @@ function xmldb_local_automation_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2026041000, 'local', 'automation');
     }
 
+    /* =======================================================
+     * 1. Add fields to quiz_questions table
+     * ======================================================= */
+    if ($oldversion < 2026042002) {
+
+        $table = new xmldb_table('local_automation_quiz_questions');
+
+        $field = new xmldb_field('selectedoption', XMLDB_TYPE_INTEGER, '2', null, null, null, null, 'maxscore');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        $field = new xmldb_field('correctoption', XMLDB_TYPE_INTEGER, '2', null, XMLDB_NOTNULL, null, 0, 'selectedoption');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        $field = new xmldb_field('iscorrect', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, 0, 'correctoption');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // ✅ FIXED savepoint
+        upgrade_plugin_savepoint(true, 2026042002, 'local', 'automation');
+    }
+
+    /* =======================================================
+     * 2. Create question_options table
+     * ======================================================= */
+    if ($oldversion < 2026042003) {
+
+        $table = new xmldb_table('local_automation_question_options');
+    
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE);
+        $table->add_field('questionattemptid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL);
+        $table->add_field('optionnumber', XMLDB_TYPE_INTEGER, '2', null, XMLDB_NOTNULL);
+        $table->add_field('optiontext', XMLDB_TYPE_TEXT, null, null, XMLDB_NOTNULL);
+        $table->add_field('iscorrect', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, 0);
+        $table->add_field('explanation', XMLDB_TYPE_TEXT, null, null);
+        $table->add_field('timecreated', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL);
+    
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
+        $table->add_index('question_idx', XMLDB_INDEX_NOTUNIQUE, ['questionattemptid']);
+    
+        if (!$dbman->table_exists($table)) {
+            $dbman->create_table($table);
+        }
+    
+        // ✅ FIXED savepoint
+        upgrade_plugin_savepoint(true, 2026042003, 'local', 'automation');
+    }
+
     return true;
 }

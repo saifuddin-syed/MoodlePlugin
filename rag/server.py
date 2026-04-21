@@ -329,6 +329,11 @@ class RecommendRequest(BaseModel):
     score: Optional[int] = None
     total: Optional[int] = None
 
+class ExplainRequest(BaseModel):
+    question: str
+    options: List[str]
+    correct_index: int
+
 # Add endpoint
 @app.post("/recommend-quiz")
 def recommend_quiz(payload: RecommendRequest):
@@ -374,3 +379,85 @@ def recommend_quiz(payload: RecommendRequest):
     except Exception as e:
         print("recommend-quiz error:", e)
         return {"ok": False, "error": "Recommendation generation failed."}
+    
+
+# Explain Options Endpoint
+@app.post("/explain-quiz")
+def explain_quiz(data: ExplainRequest):
+
+    try:
+        question = data.question
+        options = data.options
+        correct_index = data.correct_index
+
+        # Safety check
+        if not question or not options or correct_index is None:
+            return {"ok": False, "error": "Invalid input"}
+
+        # Build prompt
+        prompt = f"""
+You are a concise university tutor.
+
+Given a multiple choice question, explain EACH option in 1–2 short lines.
+
+Rules:
+- Keep each explanation VERY SHORT (max 2 lines).
+- Say WHY the option is correct or incorrect.
+- Do NOT repeat the full question.
+- Do NOT add extra text.
+- Output STRICT JSON only in this format:
+
+{{
+  "explanations": [
+    "Option A explanation",
+    "Option B explanation",
+    "Option C explanation",
+    "Option D explanation"
+  ]
+}}
+
+Question:
+{question}
+
+Options:
+"""
+
+        for i, opt in enumerate(options):
+            label = chr(65 + i)  # A, B, C, D
+            marker = " (CORRECT)" if i == correct_index else ""
+            prompt += f"{label}. {opt}{marker}\n"
+
+        # Call Groq
+        response = client.chat.completions.create(
+            model="llama-3.1-8b-instant",
+            messages=[
+                {"role": "system", "content": "You explain MCQ answers clearly and briefly."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.2,
+            max_tokens=200
+        )
+
+        content = response.choices[0].message.content.strip()
+
+        try:
+            parsed = json.loads(content)
+
+            if "explanations" in parsed and isinstance(parsed["explanations"], list):
+                return {
+                    "ok": True,
+                    "explanations": parsed["explanations"]
+                }
+
+        except:
+            pass
+
+        # fallback (very important)
+        return {
+            "ok": False,
+            "error": "Invalid AI response format"
+        }
+
+    except Exception as e:
+        print("explain-quiz error:", e)
+        return {"ok": False, "error": "Explanation generation failed."}

@@ -991,6 +991,7 @@ function filterSections() {
 }
 
 function renderAttemptLog() {
+    console.log(ALL_QUIZ);
     if(!ALL_QUIZ.length){document.getElementById("attemptLog").innerHTML=`<p style="font-size:11px;color:var(--hint);padding:10px 0">No attempts yet.</p>`;return;}
     const dc={easy:"bs",medium:"ba",hard:"bw"};
     document.getElementById("attemptLog").innerHTML=[...ALL_QUIZ].sort((a,b)=>(parseInt(b.timecreated)||0)-(parseInt(a.timecreated)||0)).map(q=>{
@@ -998,7 +999,7 @@ function renderAttemptLog() {
         // Show all resolved units for cross-unit quizzes
         const resolvedUnits = resolveUnits(q);
         const unitDisplay = resolvedUnits.length > 0 ? resolvedUnits.join(', ') : (q.unit || '—');
-        return `<div class="ag ag-row"><span style="font-size:11px">${q.topic||"—"}</span><span style="font-size:10px;color:var(--muted);font-family:var(--mono)">${unitDisplay}</span><span><span class="badge ${dc[d]||"bm"}">${d||"—"}</span></span><span style="font-family:var(--mono);font-size:11px">${sc}/${tot}</span><span style="font-family:var(--mono);font-size:11px;color:${statusOf(pct).color}">${pct}%</span></div>`;
+        return `<div class="ag ag-row" style="cursor:pointer;" onclick="window.location.href='${M.cfg.wwwroot}/local/automation/student_quiz_analysis.php?quizid=${q.id}'"><span style="font-size:11px">${q.topic||"—"}</span><span style="font-size:10px;color:var(--muted);font-family:var(--mono)">${unitDisplay}</span><span><span class="badge ${dc[d]||"bm"}">${d||"—"}</span></span><span style="font-family:var(--mono);font-size:11px">${sc}/${tot}</span><span style="font-family:var(--mono);font-size:11px;color:${statusOf(pct).color}">${pct}%</span></div>`;
     }).join("");
 }
 

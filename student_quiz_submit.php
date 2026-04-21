@@ -204,17 +204,83 @@ foreach ($quizData as $index => $q) {
     $qrecord->score = $isCorrect;
     $qrecord->maxscore = 1;
 
+    // NEW FIELDS for Saving options
+    $qrecord->selectedoption = $studentAnswer;
+    $qrecord->correctoption = $correctAnswer;
+    $qrecord->iscorrect = $isCorrect;
+
     $qrecord->timecreated = time();
 
-    // Insert into new table
-    $DB->insert_record('local_automation_quiz_questions', $qrecord);
+    // Insert question
+    $questionattemptid = $DB->insert_record('local_automation_quiz_questions', $qrecord);
+
+    // ---------------- SAVE OPTIONS ----------------
+    // ---------------- GET EXPLANATIONS FROM GROQ ----------------
+    $explanations = [];
+
+    if (isset($q['options']) && is_array($q['options'])) {
+
+        $payload = json_encode([
+            'question' => $questiontext,
+            'options' => array_values($q['options']),
+            'correct_index' => $correctAnswer
+        ]);
+
+        $url = 'http://127.0.0.1:8000/explain-quiz';
+
+        $opts = [
+            'http' => [
+                'header'  => "Content-type: application/json\r\n",
+                'method'  => 'POST',
+                'content' => $payload,
+                'timeout' => 5
+            ]
+        ];
+
+        $context = stream_context_create($opts);
+        $result = @file_get_contents($url, false, $context);
+
+        if ($result !== FALSE) {
+            $res = json_decode($result, true);
+
+            if ($res && isset($res['ok']) && $res['ok'] && isset($res['explanations'])) {
+                $explanations = $res['explanations'];
+            }
+        }
+    }
+
+    // ---------------- SAVE OPTIONS ----------------
+    if (isset($q['options']) && is_array($q['options'])) {
+
+        foreach ($q['options'] as $optIndex => $optText) {
+
+            $opt = new stdClass();
+            $opt->questionattemptid = $questionattemptid;
+            $opt->optionnumber = $optIndex;
+            $opt->optiontext = $optText;
+            $opt->iscorrect = ($optIndex == $correctAnswer) ? 1 : 0;
+
+            // 🔥 Attach explanation safely
+            $opt->explanation = isset($explanations[$optIndex])
+                ? $explanations[$optIndex]
+                : "No explanation available.";
+
+            $opt->timecreated = time();
+
+            $DB->insert_record('local_automation_question_options', $opt);
+        }
+    }
 }
 
 // Build chat message summary
 $chatMessage = 
     "📘 <strong>Quiz ID:</strong> $quizid<br>" .
     "<strong>Score:</strong> $score / $total<br>" .
-    "<strong>Recommendation:</strong> $recommendation";
+    "<strong>Recommendation:</strong> $recommendation<br><br>" .
+    "<a href='" . new moodle_url('/local/automation/student_quiz_analysis.php', ['quizid' => $quizid]) . "' 
+        style='display:inline-block; padding:8px 14px; background:#0073e6; color:white; border-radius:6px; text-decoration:none;'>
+        View Analysis
+    </a>";
 
 $chatRecord = new stdClass();
 $chatRecord->studentid = $USER->id;
@@ -225,8 +291,7 @@ $chatRecord->timecreated = time();
 
 $DB->insert_record('local_automation_student_chat', $chatRecord);
 
-// redirect back to course with message
+// redirect back to analysis page
 redirect(
-    new moodle_url('/course/view.php', ['id' => $courseid]),
-    "Quiz submitted! Score: $score / $total"
+    new moodle_url('/local/automation/student_quiz_analysis.php', ['quizid' => $quizid])
 );

@@ -4,16 +4,29 @@ import pickle
 import pdfplumber
 from pdf2image import convert_from_path
 import pytesseract
-from sentence_transformers import SentenceTransformer
 import faiss
+import numpy as np
+from sentence_transformers import SentenceTransformer
+from nltk.tokenize import sent_tokenize
 
+import nltk
+nltk.download('punkt')
+nltk.download('punkt_tab')
+# -------- CONFIG --------
 PDF_DIR = "pdfs"
 INDEX_FILE = "faiss.index"
-CHUNKS_FILE = "chunks.pkl"
+METADATA_FILE = "chunks_metadata.pkl"
 
-model = SentenceTransformer("paraphrase-MiniLM-L3-v2")
+POPPLER_PATH = r"C:\poppler\Library\bin"
+pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
+
+EMBED_MODEL = "all-MiniLM-L6-v2"
+
+# -------- LOAD MODEL --------
+model = SentenceTransformer(EMBED_MODEL)
 
 
+# -------- TEXT EXTRACTION --------
 def extract_text(pdf_path):
     text = ""
     with pdfplumber.open(pdf_path) as pdf:
@@ -24,36 +37,23 @@ def extract_text(pdf_path):
     return text
 
 
-from pdf2image import convert_from_path
-import pytesseract
-
-from pdf2image import convert_from_path
-import pytesseract
-
-POPPLER_PATH = r"C:\poppler\Library\bin"
-pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
-
 def extract_images_text(pdf_path):
     text = ""
-    try:
-        images = convert_from_path(
-            pdf_path,
-            dpi=300,
-            poppler_path=POPPLER_PATH
-        )
-        for img in images:
-            ocr = pytesseract.image_to_string(img, lang="eng")
-            if ocr.strip():
-                text += ocr + "\n"
-    except Exception as e:
-        print(f"❌ OCR failed for {pdf_path}: {e}")
-        raise e   # ← IMPORTANT: DO NOT SILENTLY SKIP
+    images = convert_from_path(pdf_path, dpi=300, poppler_path=POPPLER_PATH)
+    for img in images:
+        ocr = pytesseract.image_to_string(img, lang="eng")
+        if ocr.strip():
+            text += ocr + "\n"
     return text
 
+
+# -------- STRUCTURING --------
 def structure_text(raw_text):
     lines = raw_text.splitlines()
+
     current_unit = "UNKNOWN"
     current_section = "UNKNOWN"
+
     structured = []
 
     for line in lines:
@@ -66,56 +66,97 @@ def structure_text(raw_text):
         if section_match:
             current_section = section_match.group(2)
 
-        structured.append(
-            f"[UNIT {current_unit} | SECTION {current_section}] {line}"
-        )
+        structured.append({
+            "unit": current_unit,
+            "section": current_section,
+            "text": line.strip()
+        })
 
-    return "\n".join(structured)
-
-
-def split_by_section(text):
-    return re.split(
-        r"\n(?=\[UNIT\s+\d+\s+\|\s+SECTION\s+[\d\.]+\])",
-        text
-    )
+    return structured
 
 
-def chunk_text(text, size=700, overlap=150):
+# -------- SMART CHUNKING --------
+def create_chunks(structured_lines, max_tokens=300):
     chunks = []
-    start = 0
-    while start < len(text):
-        chunks.append(text[start:start + size])
-        start += size - overlap
+    current_text = ""
+    current_meta = None
+
+    for entry in structured_lines:
+        sentence_list = sent_tokenize(entry["text"])
+
+        for sentence in sentence_list:
+            if not sentence.strip():
+                continue
+
+            if len(current_text) + len(sentence) < max_tokens:
+                current_text += " " + sentence
+                current_meta = entry
+            else:
+                chunks.append({
+                    "text": current_text.strip(),
+                    "unit": current_meta["unit"],
+                    "section": current_meta["section"]
+                })
+                current_text = sentence
+                current_meta = entry
+
+    if current_text:
+        chunks.append({
+            "text": current_text.strip(),
+            "unit": current_meta["unit"],
+            "section": current_meta["section"]
+        })
+
     return chunks
 
 
+# -------- MAIN INGEST --------
 all_chunks = []
 
 for file in os.listdir(PDF_DIR):
-    if file.endswith(".pdf"):
-        print(f"📄 Processing {file}")
-        path = os.path.join(PDF_DIR, file)
+    if not file.endswith(".pdf"):
+        continue
 
-        text = extract_text(path)
-        ocr_text = extract_images_text(path)
-        combined = text + "\n" + ocr_text
+    print(f"📄 Processing {file}")
+    path = os.path.join(PDF_DIR, file)
 
-        structured = structure_text(combined)
-        structured = f"SOURCE: {file}\n{structured}"
+    text = extract_text(path)
+    ocr_text = extract_images_text(path)
 
-        sections = split_by_section(structured)
-        for sec in sections:
-            all_chunks.extend(chunk_text(sec))
+    combined = text + "\n" + ocr_text
+    structured = structure_text(combined)
 
-print(f"✂️ Total chunks created: {len(all_chunks)}")
+    chunks = create_chunks(structured)
 
-embeddings = model.encode(all_chunks, show_progress_bar=True)
-index = faiss.IndexFlatL2(embeddings.shape[1])
+    for chunk in chunks:
+        chunk["source"] = file
+        all_chunks.append(chunk)
+
+print(f"✂️ Total chunks: {len(all_chunks)}")
+
+
+# -------- EMBEDDING --------
+texts = [c["text"] for c in all_chunks]
+
+embeddings = model.encode(
+    texts,
+    batch_size=64,
+    show_progress_bar=True,
+    convert_to_numpy=True
+)
+
+# Normalize for cosine similarity
+faiss.normalize_L2(embeddings)
+
+# -------- FAISS INDEX --------
+dimension = embeddings.shape[1]
+index = faiss.IndexFlatIP(dimension)  # cosine similarity
 index.add(embeddings)
 
 faiss.write_index(index, INDEX_FILE)
 
-with open(CHUNKS_FILE, "wb") as f:
+# -------- SAVE METADATA --------
+with open(METADATA_FILE, "wb") as f:
     pickle.dump(all_chunks, f)
 
 print("✅ Ingestion complete")

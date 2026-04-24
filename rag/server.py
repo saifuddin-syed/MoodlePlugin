@@ -1,12 +1,12 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
+from typing import List, Dict, Optional
 import pickle
 import faiss
 import os
-import re
-import random
 import json
+import random
 from sentence_transformers import SentenceTransformer
 from groq import Groq
 from dotenv import load_dotenv
@@ -20,14 +20,14 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],    # dev only
+    allow_origins=["*"],  # dev only
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 # ------------------------
-# LOAD MODEL + INDEX ONCE
+# LOAD MODEL + INDEX
 # ------------------------
 model = SentenceTransformer("paraphrase-MiniLM-L3-v2")
 
@@ -39,9 +39,8 @@ index = faiss.read_index("faiss.index")
 client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
 # ------------------------
-# LOAD DEMO TOPICS METADATA
+# LOAD DEMO TOPICS
 # ------------------------
-
 with open("demo_topics.json", "r", encoding="utf-8") as f:
     demo_topics = json.load(f)
 
@@ -56,44 +55,53 @@ for unit, sections in demo_topics.items():
 
         for idx, chunk in enumerate(chunks):
             chunk_lower = chunk.lower()
-
-            # If ANY keyword appears in chunk
             if any(kw.lower() in chunk_lower for kw in keywords):
                 topic_chunk_map[unit][section].append(idx)
 
 # ------------------------
-# REQUEST SCHEMAS
+# REQUEST MODELS
 # ------------------------
-
-from typing import List, Dict
-from pydantic import Field
-
 class QuestionRequest(BaseModel):
     question: str
     history: List[Dict[str, str]] = Field(default_factory=list)
 
+
 class QuizRequest(BaseModel):
-    units: list[str] = []
-    sections: list[dict] = []
+    units: Optional[List[str]] = []
+    sections: Optional[List[Dict[str, str]]] = []
     num_questions: int
     difficulty: str
 
 
-# ======================================================
-# CHAT ENDPOINT
-# ======================================================
+class RecommendRequest(BaseModel):
+    wrong_questions: List[str] = Field(default_factory=list)
+    selected_topics: Optional[Dict[str, List[str]]] = Field(default_factory=dict)
+    score: Optional[int] = None
+    total: Optional[int] = None
 
+
+class ExplainRequest(BaseModel):
+    question: str
+    options: List[str]
+    correct_index: int
+
+
+# ======================================================
+# CHAT ENDPOINT (FIXED)
+# ======================================================
 @app.post("/ask")
 def ask_question(data: QuestionRequest):
 
     question = data.question
-    history = data.history[-6:]  # last 6 turns only
+    history = data.history[-6:]
 
-    # === Retrieve RAG Context ===
+    # === Embed ===
     q_embedding = model.encode([question], normalize_embeddings=True)
+
+    # === FAISS Search ===
     scores, indices = index.search(q_embedding, 6)
 
-    best_score = scores[0][0]
+    best_score = scores[0][0] if len(scores[0]) > 0 else 0
 
     if best_score < 0.15:
         return {
@@ -101,45 +109,38 @@ def ask_question(data: QuestionRequest):
             "answer": "This question appears to be outside the scope of this course."
         }
 
-    retrieved = [chunks[i] for i in indices[0]]
+    # ✅ SAFE INDEX HANDLING (FIX)
+    valid_indices = [
+        i for i in indices[0]
+        if i != -1 and 0 <= i < len(chunks)
+    ]
+
+    if not valid_indices:
+        return {
+            "ok": True,
+            "answer": "No relevant content found for this question."
+        }
+
+    retrieved = [chunks[i] for i in valid_indices]
     context = "\n\n".join(retrieved)
 
-    # === Build Conversation ===
+    # === Build messages ===
     messages = [
         {
             "role": "system",
             "content": (
-                "You are an interactive university tutor.\n\n"
-                "Teaching style rules:\n"
-                "1. Keep responses SHORT (4–8 sentences max).\n"
-                "2. Explain intuitively, not like a textbook.\n"
-                "3. Use simple language.\n"
-                "4. Give at most ONE small example.\n"
-                "5. Always end with ONE short follow-up question.\n"
-                "6. Do NOT over-explain.\n"
-                "7. Do NOT give long bullet lists.\n"
-                "8. Encourage the student to think.\n"
-                "9. Never mention documents or syllabus.\n"
-                "10. If something asked is completely irrelevant, say: This is out of scope.\n"
-                "11. Structure answers using short paragraphs.\n"
-                "12. Use at most 2–3 short blocks of text.\n"
-                "13. If defining something, follow this format:\n"
-                "   - One-line definition.\n"
-                "   - One short intuitive explanation.\n"
-                "   - One small example (1–2 lines only).\n"
-                "14. Avoid long analogies.\n"
-                "15. Avoid ASCII diagrams.\n"
-                "16. Avoid repeating ideas.\n"
-                "17. Keep total response under 120 words.\n"
+                "You are an interactive university tutor.\n"
+                "Keep answers short, simple, intuitive, and under 120 words.\n"
+                "Give at most one example.\n"
+                "End with one short follow-up question."
             )
         },
         {
             "role": "system",
-            "content": f"Relevant course material:\n{context}"
+            "content": f"Relevant material:\n{context}"
         }
     ]
 
-   # Add previous chat properly formatted
     for msg in history:
         if "sender" in msg and "message" in msg:
             role = "assistant" if msg["sender"] == "bot" else "user"
@@ -148,7 +149,6 @@ def ask_question(data: QuestionRequest):
                 "content": msg["message"]
             })
 
-    # Add current question
     messages.append({
         "role": "user",
         "content": question
@@ -168,9 +168,8 @@ def ask_question(data: QuestionRequest):
 
 
 # ======================================================
-# GET AVAILABLE UNITS (For Dropdown)
+# GET TOPICS
 # ======================================================
-
 @app.get("/topics")
 def get_topics():
     formatted = []
@@ -191,18 +190,8 @@ def get_topics():
 
 
 # ======================================================
-# GENERATE QUIZ (Unit-Level Selection)
+# GENERATE QUIZ
 # ======================================================
-from typing import Optional
-
-
-class QuizRequest(BaseModel):
-    units: Optional[List[str]] = []
-    sections: Optional[List[Dict[str, str]]] = []
-    num_questions: int
-    difficulty: str
-
-
 @app.post("/generate-quiz")
 def generate_quiz(data: QuizRequest):
 
@@ -212,7 +201,6 @@ def generate_quiz(data: QuizRequest):
 
         candidate_ids = set()
 
-        # If specific sections selected
         for s in sections:
             u = s.get("unit")
             sec = s.get("section")
@@ -220,7 +208,6 @@ def generate_quiz(data: QuizRequest):
             if u in topic_chunk_map and sec in topic_chunk_map[u]:
                 candidate_ids.update(topic_chunk_map[u][sec])
 
-        # If only units selected
         if not sections and units:
             for u in units:
                 if u in topic_chunk_map:
@@ -228,55 +215,35 @@ def generate_quiz(data: QuizRequest):
                         candidate_ids.update(topic_chunk_map[u][sec])
 
         if not candidate_ids:
-            return {"ok": False, "error": "No content found for selected topics."}
+            return {"ok": False, "error": "No content found."}
 
         num_questions = min(max(1, data.num_questions), 10)
+        candidate_list = list(candidate_ids)
 
         questions = []
-        candidate_list = list(candidate_ids)
 
         for _ in range(num_questions):
 
             chosen_ids = random.sample(candidate_list, min(5, len(candidate_list)))
             context = "\n\n".join([chunks[i] for i in chosen_ids])
-            if len(candidate_ids) < 1:
-                return {
-                    "ok": False,
-                    "error": "No relevant material found for selected topics."
-                }
 
             prompt = f"""
-You are a university-level exam setter.
+Generate ONE MCQ from this material.
 
-Generate ONE high-quality multiple choice question STRICTLY from the material below.
-
-Rules:
-- Question MUST test understanding of a concept.
-- DO NOT ask about document structure (units, sections, formatting).
-- DO NOT ask about "where something is mentioned".
-- Focus only on conceptual or theoretical content.
-- 4 options.
-- Only 1 correct answer.
-- Wrong options must be plausible but clearly incorrect.
-- Avoid trivial wording.
-- Return STRICT JSON only:
-
+Return JSON:
 {{
-  "question": "text",
+  "question": "",
   "options": ["A","B","C","D"],
   "answer_index": 0
 }}
 
-Course Material:
+Material:
 {context}
 """
 
             response = client.chat.completions.create(
                 model="llama-3.1-8b-instant",
-                messages=[
-                    {"role": "system", "content": "You are a university-level exam setter."},
-                    {"role": "user", "content": prompt}
-                ],
+                messages=[{"role": "user", "content": prompt}],
                 temperature=0.3,
                 max_tokens=300
             )
@@ -284,30 +251,7 @@ Course Material:
             try:
                 mcq = json.loads(response.choices[0].message.content)
 
-                if "question" in mcq and "options" in mcq and "answer_index" in mcq:
-
-                    # 🔥 ADD UNIT + TOPIC HERE
-                    # pick random section used for this question
-
-                    selected_unit = None
-                    selected_topic = None
-
-                    if sections:
-                        chosen = random.choice(sections)
-                        selected_unit = chosen.get("unit", "General")
-                        selected_topic = chosen.get("section", "General")
-
-                    elif units:
-                        selected_unit = random.choice(units)
-                        selected_topic = "General"
-
-                    else:
-                        selected_unit = "General"
-                        selected_topic = "General"
-
-                    mcq["unit"] = selected_unit
-                    mcq["topic"] = selected_topic
-
+                if "question" in mcq:
                     questions.append(mcq)
             except:
                 continue
@@ -319,145 +263,58 @@ Course Material:
         return {"ok": False, "error": "Quiz generation failed."}
 
 
-# at top imports (if not already)
-from pydantic import BaseModel, Field
-
-# Add this model (can place near other Pydantic models)
-class RecommendRequest(BaseModel):
-    wrong_questions: List[str] = Field(default_factory=list)
-    selected_topics: Optional[Dict[str, List[str]]] = Field(default_factory=dict)
-    score: Optional[int] = None
-    total: Optional[int] = None
-
-class ExplainRequest(BaseModel):
-    question: str
-    options: List[str]
-    correct_index: int
-
-# Add endpoint
+# ======================================================
+# RECOMMENDATION
+# ======================================================
 @app.post("/recommend-quiz")
 def recommend_quiz(payload: RecommendRequest):
-    # Build very short prompt focused on weakness
-    # Keep request compact (we only need wrong questions and topic ids)
+
     wrong_qs = payload.wrong_questions or []
-    selected_topics = payload.selected_topics or {}
-    score = payload.score
-    total = payload.total
 
     if len(wrong_qs) == 0:
-        return {"ok": True, "recommendation": "Good work — no incorrect answers to analyze."}
+        return {"ok": True, "recommendation": "Good work."}
 
-    # Compose concise prompt
-    sample_prompt = (
-        "You are a helpful, concise tutor. Produce a 1–2 sentence recommendation (very short) "
-        "for a student who got these questions wrong. Focus on the likely weak concepts they need "
-        "to revise and one short next-step action they can take (e.g., review X section, try exercises). "
-        "Output only the recommendation (no preamble).\n\n"
-        f"Selected topics mapping (unit -> sections): {json.dumps(selected_topics)}\n\n"
-        f"Wrong question texts:\n"
+    prompt = "Give a short recommendation for improvement:\n"
+    for q in wrong_qs:
+        prompt += f"- {q}\n"
+
+    resp = client.chat.completions.create(
+        model="llama-3.1-8b-instant",
+        messages=[{"role": "user", "content": prompt}],
+        max_tokens=70
     )
 
-    for i, q in enumerate(wrong_qs, start=1):
-        sample_prompt += f"{i}. {q}\n"
+    return {
+        "ok": True,
+        "recommendation": resp.choices[0].message.content
+    }
 
-    # ask Groq
-    try:
-        resp = client.chat.completions.create(
-            model="llama-3.1-8b-instant",
-            messages=[
-                {"role": "system", "content": "You are a concise tutor producing a short recommendation."},
-                {"role": "user", "content": sample_prompt},
-            ],
-            temperature=0.2,
-            max_tokens=70  # enough for 1-2 short sentences
-        )
-        recommendation = resp.choices[0].message.content.strip()
-        # sanitize: if empty, fallback
-        if not recommendation:
-            recommendation = "Revise the related unit sections and practice the example problems."
-        return {"ok": True, "recommendation": recommendation}
-    except Exception as e:
-        print("recommend-quiz error:", e)
-        return {"ok": False, "error": "Recommendation generation failed."}
-    
 
-# Explain Options Endpoint
+# ======================================================
+# EXPLAIN QUIZ
+# ======================================================
 @app.post("/explain-quiz")
 def explain_quiz(data: ExplainRequest):
 
     try:
-        question = data.question
-        options = data.options
-        correct_index = data.correct_index
-
-        # Safety check
-        if not question or not options or correct_index is None:
-            return {"ok": False, "error": "Invalid input"}
-
-        # Build prompt
         prompt = f"""
-You are a concise university tutor.
+Explain each option briefly.
 
-Given a multiple choice question, explain EACH option in 1–2 short lines.
+Question: {data.question}
+Options: {data.options}
+Correct: {data.correct_index}
 
-Rules:
-- Keep each explanation VERY SHORT (max 2 lines).
-- Say WHY the option is correct or incorrect.
-- Do NOT repeat the full question.
-- Do NOT add extra text.
-- Output STRICT JSON only in this format:
-
-{{
-  "explanations": [
-    "Option A explanation",
-    "Option B explanation",
-    "Option C explanation",
-    "Option D explanation"
-  ]
-}}
-
-Question:
-{question}
-
-Options:
+Return JSON:
+{{"explanations": []}}
 """
 
-        for i, opt in enumerate(options):
-            label = chr(65 + i)  # A, B, C, D
-            marker = " (CORRECT)" if i == correct_index else ""
-            prompt += f"{label}. {opt}{marker}\n"
-
-        # Call Groq
         response = client.chat.completions.create(
             model="llama-3.1-8b-instant",
-            messages=[
-                {"role": "system", "content": "You explain MCQ answers clearly and briefly."},
-                {"role": "user", "content": prompt}
-            ],
-            temperature=0.2,
+            messages=[{"role": "user", "content": prompt}],
             max_tokens=200
         )
 
-        content = response.choices[0].message.content.strip()
+        return json.loads(response.choices[0].message.content)
 
-        try:
-            parsed = json.loads(content)
-
-            if "explanations" in parsed and isinstance(parsed["explanations"], list):
-                return {
-                    "ok": True,
-                    "explanations": parsed["explanations"]
-                }
-
-        except:
-            pass
-
-        # fallback (very important)
-        return {
-            "ok": False,
-            "error": "Invalid AI response format"
-        }
-
-    except Exception as e:
-        print("explain-quiz error:", e)
-        return {"ok": False, "error": "Explanation generation failed."}
+    except:
+        return {"ok": False, "error": "Failed to explain"}

@@ -32,7 +32,7 @@ echo $OUTPUT->header();
 
 <style>
 /* ══════════════════════════════════════════════════════════════
-   RESET & DESIGN TOKENS  (matches analytics_student.php exactly)
+   RESET & DESIGN TOKENS
 ══════════════════════════════════════════════════════════════ */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -70,7 +70,7 @@ div[data-region="blocks-column"],.drawers,.drawers .main-inner
 .ov{width:100vw;min-height:100vh;background:var(--bg);font-family:var(--font);color:var(--text);font-size:14px;line-height:1.5;}
 
 /* ══════════════════════════════════════════════════════════════
-   NAV  (same style as student page)
+   NAV
 ══════════════════════════════════════════════════════════════ */
 .ov-nav{
     position:sticky;top:0;z-index:100;
@@ -112,7 +112,7 @@ div[data-region="blocks-column"],.drawers,.drawers .main-inner
 .hc-grey{background:rgba(255,255,255,.08);color:rgba(255,255,255,.4);}
 
 /* ══════════════════════════════════════════════════════════════
-   BODY LAYOUT  — 3-col + sticky right
+   BODY LAYOUT
 ══════════════════════════════════════════════════════════════ */
 .ov-body{
     display:grid;
@@ -123,14 +123,13 @@ div[data-region="blocks-column"],.drawers,.drawers .main-inner
     align-items:start;
 }
 
-/* column helpers */
 .col-span2{grid-column:span 2;}
 .col-span3{grid-column:span 3;}
 .col-span4{grid-column:1/-1;}
 .col-right{grid-column:4;}
 
 /* ══════════════════════════════════════════════════════════════
-   SECTION HEADINGS (inline divider)
+   SECTION HEADINGS
 ══════════════════════════════════════════════════════════════ */
 .sec-head{
     grid-column:1/-1;
@@ -142,14 +141,14 @@ div[data-region="blocks-column"],.drawers,.drawers .main-inner
 .sec-head::after{content:'';flex:1;height:.5px;background:var(--border-md);}
 
 /* ══════════════════════════════════════════════════════════════
-   CARDS  (identical to student page)
+   CARDS
 ══════════════════════════════════════════════════════════════ */
 .card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--r);padding:16px 18px;box-shadow:var(--sh);animation:fadeUp .35s ease both;}
 .card-title{font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:13px;padding-bottom:9px;border-bottom:0.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:8px;}
 .card-title-l{display:flex;align-items:center;gap:5px;}
 
 /* ══════════════════════════════════════════════════════════════
-   METRIC CARDS  (same as student page)
+   METRIC CARDS
 ══════════════════════════════════════════════════════════════ */
 .metrics-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
 .metric{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--r);padding:12px 14px;position:relative;overflow:hidden;box-shadow:var(--sh);transition:box-shadow .15s,transform .15s;animation:fadeUp .35s ease both;}
@@ -170,7 +169,7 @@ div[data-region="blocks-column"],.drawers,.drawers .main-inner
 .bm{background:#F0EEE8;color:var(--muted);}
 
 /* ══════════════════════════════════════════════════════════════
-   BAR ROWS  (same as student page)
+   BAR ROWS
 ══════════════════════════════════════════════════════════════ */
 .bar-row{margin-bottom:8px;} .bar-row:last-child{margin-bottom:0;}
 .bar-meta{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:3px;}
@@ -180,7 +179,7 @@ div[data-region="blocks-column"],.drawers,.drawers .main-inner
 .bar-fill{height:4px;border-radius:4px;transition:width .8s cubic-bezier(.16,1,.3,1);}
 
 /* ══════════════════════════════════════════════════════════════
-   HEATMAP  (same as student page)
+   HEATMAP
 ══════════════════════════════════════════════════════════════ */
 .heatmap-table{width:100%;border-collapse:separate;border-spacing:3px;font-size:11px;}
 .heatmap-table th{font-size:9px;font-weight:500;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);padding:3px 4px;text-align:center;}
@@ -210,7 +209,7 @@ div[data-region="blocks-column"],.drawers,.drawers .main-inner
 .stu-av{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;font-family:var(--mono);flex-shrink:0;}
 
 /* ══════════════════════════════════════════════════════════════
-   PI-RING  (reused from student page)
+   PI-RING
 ══════════════════════════════════════════════════════════════ */
 .pi-ring-wrap{position:relative;width:64px;height:64px;flex-shrink:0;}
 .pi-ring-wrap svg{transform:rotate(-90deg);}
@@ -228,7 +227,7 @@ div[data-region="blocks-column"],.drawers,.drawers .main-inner
 .dist-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
 
 /* ══════════════════════════════════════════════════════════════
-   ATTEMPT LOG GRID  (same pattern as student page)
+   ATTEMPT LOG GRID
 ══════════════════════════════════════════════════════════════ */
 .ag{display:grid;align-items:center;padding:7px 8px;}
 .ag-5{grid-template-columns:minmax(0,2.2fr) minmax(0,1fr) 72px 72px 64px;}
@@ -254,7 +253,7 @@ div[data-region="blocks-column"],.drawers,.drawers .main-inner
 .search-wrap::before{content:'🔍';position:absolute;left:8px;top:50%;transform:translateY(-50%);font-size:10px;pointer-events:none;}
 
 /* ══════════════════════════════════════════════════════════════
-   INSIGHTS ROWS  (same as student page)
+   INSIGHTS ROWS
 ══════════════════════════════════════════════════════════════ */
 .ins-row{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:.5px solid var(--border);}
 .ins-row:last-child{border-bottom:none;}
@@ -283,18 +282,6 @@ div[data-region="blocks-column"],.drawers,.drawers .main-inner
 .ch240{position:relative;height:240px;width:100%;}
 .ch280{position:relative;height:280px;width:100%;}
 .ch320{position:relative;height:320px;width:100%;}
-
-/* ══════════════════════════════════════════════════════════════
-   SCATTER GRID (custom scatter using CSS grid)
-══════════════════════════════════════════════════════════════ */
-.bubble-grid{position:relative;}
-.bubble-dot{position:absolute;border-radius:50%;transform:translate(-50%,-50%);transition:opacity .2s;cursor:pointer;}
-.bubble-dot:hover{opacity:.8;z-index:10;}
-
-/* ══════════════════════════════════════════════════════════════
-   PROGRESS RING (small inline)
-══════════════════════════════════════════════════════════════ */
-.ring-sm{display:inline-flex;align-items:center;justify-content:center;position:relative;}
 
 /* ══════════════════════════════════════════════════════════════
    MISC
@@ -386,7 +373,7 @@ div[data-region="blocks-column"],.drawers,.drawers .main-inner
         <div class="ch280"><canvas id="overallChart"></canvas></div>
     </div>
 
-    <!-- Grade donut — right col, row-span 2 -->
+    <!-- Grade donut — right col -->
     <div class="card col-right" style="animation-delay:70ms;grid-row:span 2">
         <div class="card-title"><div class="card-title-l">🍩 Grade distribution</div></div>
         <div class="ch180"><canvas id="gradeDonut"></canvas></div>
@@ -398,7 +385,7 @@ div[data-region="blocks-column"],.drawers,.drawers .main-inner
         </div>
     </div>
 
-    <!-- Metric cards row — spans 3 -->
+    <!-- Metric cards row -->
     <div class="metrics-grid col-span3" id="classMetrics" style="animation-delay:80ms">
         <div class="metric"><div class="loading"><div class="spinner"></div></div></div>
         <div class="metric"><div class="loading"><div class="spinner"></div></div></div>
@@ -411,73 +398,61 @@ div[data-region="blocks-column"],.drawers,.drawers .main-inner
     <!-- ████  SECTION B: ANALYTICS CHARTS  ████ -->
     <div class="sec-head">📈 Analytics & Trends</div>
 
-    <!-- Class accuracy trend -->
     <div class="card" style="animation-delay:100ms">
         <div class="card-title"><div class="card-title-l">📈 Class accuracy trend</div><span class="badge bb" id="trendDayCount">—</span></div>
         <div class="ch180"><canvas id="classTrend"></canvas></div>
     </div>
 
-    <!-- Unit mastery radar -->
     <div class="card" style="animation-delay:110ms">
         <div class="card-title"><div class="card-title-l">🕸 Unit mastery radar</div></div>
         <div class="ch180"><canvas id="classRadar"></canvas></div>
     </div>
 
-    <!-- Difficulty breakdown grouped bar -->
     <div class="card" style="animation-delay:120ms">
         <div class="card-title"><div class="card-title-l">💪 Difficulty accuracy</div></div>
         <div class="ch180"><canvas id="diffBar"></canvas></div>
     </div>
 
-    <!-- Class heatmap — right -->
     <div class="card col-right" style="animation-delay:130ms">
         <div class="card-title"><div class="card-title-l">🌡 Class heatmap</div></div>
         <div id="classHeatmap"><div class="loading"><div class="spinner"></div></div></div>
     </div>
 
-    <!-- Attempts per unit stacked -->
     <div class="card" style="animation-delay:140ms">
         <div class="card-title"><div class="card-title-l">🔢 Attempts by unit</div></div>
         <div class="ch180"><canvas id="attemptsUnit"></canvas></div>
     </div>
 
-    <!-- Score distribution histogram -->
     <div class="card" style="animation-delay:150ms">
         <div class="card-title"><div class="card-title-l">📊 Score distribution histogram</div></div>
         <div class="ch180"><canvas id="scoreHistogram"></canvas></div>
     </div>
 
-    <!-- Hard vs Easy scatter -->
     <div class="card" style="animation-delay:160ms">
         <div class="card-title"><div class="card-title-l">⚖️ Easy vs Hard accuracy</div><span style="font-size:10px;color:var(--hint)">per student</span></div>
         <div class="ch180"><canvas id="easyHardScatter"></canvas></div>
     </div>
 
-    <!-- Unit accuracy bars (right) -->
     <div class="card col-right" style="animation-delay:170ms">
         <div class="card-title"><div class="card-title-l">📚 Unit avg accuracy</div></div>
         <div id="unitAvgBars"><div class="loading"><div class="spinner"></div></div></div>
     </div>
 
-    <!-- Attempts per student bar -->
     <div class="card" style="animation-delay:180ms">
         <div class="card-title"><div class="card-title-l">🗺 Attempts per student</div></div>
         <div class="ch180"><canvas id="attemptsPerStudent"></canvas></div>
     </div>
 
-    <!-- Score spread horizontal -->
     <div class="card" style="animation-delay:190ms">
         <div class="card-title"><div class="card-title-l">📉 Score spread (sorted)</div></div>
         <div class="ch180"><canvas id="scoreSpread"></canvas></div>
     </div>
 
-    <!-- Engagement heatmap (by day of week) -->
     <div class="card" style="animation-delay:200ms">
         <div class="card-title"><div class="card-title-l">📅 Attempt activity heatmap</div><span style="font-size:10px;color:var(--hint)">by weekday</span></div>
         <div id="activityHeatmap"><div class="loading"><div class="spinner"></div></div></div>
     </div>
 
-    <!-- Unit coverage donut right -->
     <div class="card col-right" style="animation-delay:210ms">
         <div class="card-title"><div class="card-title-l">🗂 Unit attempt split</div></div>
         <div class="ch160"><canvas id="unitSplitDonut"></canvas></div>
@@ -486,25 +461,21 @@ div[data-region="blocks-column"],.drawers,.drawers .main-inner
     <!-- ████  SECTION C: STUDENT INSIGHTS  ████ -->
     <div class="sec-head">👨‍🎓 Student Insights</div>
 
-    <!-- Top performers -->
     <div class="card" style="animation-delay:220ms">
         <div class="card-title"><div class="card-title-l">🏆 Top performers</div><span class="badge bs" id="topCount">—</span></div>
         <div id="topList"><div class="loading"><div class="spinner"></div></div></div>
     </div>
 
-    <!-- At risk -->
     <div class="card" style="animation-delay:230ms">
         <div class="card-title"><div class="card-title-l">⚠️ Needs attention</div><span class="badge bw" id="riskCount">—</span></div>
         <div id="riskList"><div class="loading"><div class="spinner"></div></div></div>
     </div>
 
-    <!-- Most active -->
     <div class="card" style="animation-delay:240ms">
         <div class="card-title"><div class="card-title-l">🔥 Most active students</div><span style="font-size:10px;color:var(--hint)">by attempts</span></div>
         <div id="activeList"><div class="loading"><div class="spinner"></div></div></div>
     </div>
 
-    <!-- Improving / declining -->
     <div class="card col-right" style="animation-delay:245ms">
         <div class="card-title"><div class="card-title-l">📊 Key class insights</div></div>
         <div id="classInsights"><div class="loading"><div class="spinner"></div></div></div>
@@ -564,7 +535,11 @@ div[data-region="blocks-column"],.drawers,.drawers .main-inner
 </div><!-- /ov-body -->
 </div><!-- /ov -->
 
+<!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<!-- Chart.js Datalabels plugin — shows labels inside stacked bar segments -->
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+
 <script>
 /* ══════════════════════════════════════════════════════════════
    CONFIG
@@ -577,6 +552,13 @@ const DIFFS     = ['easy','medium','hard'];
 
 Chart.defaults.font.family = "'DM Sans',system-ui,sans-serif";
 Chart.defaults.color = '#6B6B6B';
+
+/*
+ * Register ChartDataLabels ONLY for the stacked bar chart.
+ * We do NOT do Chart.register(ChartDataLabels) globally because that
+ * would enable labels on every chart. Instead we pass the plugin
+ * directly in the plugins array of rebuildOverallChart() only.
+ */
 
 /* ══════════════════════════════════════════════════════════════
    STATE
@@ -687,7 +669,6 @@ function renderMetrics(){
     const avgAtt = sids.length ? Math.round(totalAtt/sids.length) : 0;
     const improving = sids.filter(id=>(STATS[id]?.trendDelta||0)>5).length;
     const declining = sids.filter(id=>(STATS[id]?.trendDelta||0)<-5).length;
-    const totalSec  = Object.values({}).length; // placeholder
     const hardAs = sids.map(id=>STATS[id]?.diffAcc.hard).filter(a=>a!==null);
     const hardAvg = avg(hardAs)||0;
     const easyAs  = sids.map(id=>STATS[id]?.diffAcc.easy).filter(a=>a!==null);
@@ -728,7 +709,7 @@ function renderGradeDonut(){
     CHARTS.gradeDonut=new Chart(el('gradeDonut'),{
         type:'doughnut',
         data:{labels:buckets.map(b=>b.l),datasets:[{data:buckets.map(b=>b.v),backgroundColor:buckets.map(b=>b.c),borderColor:'#fff',borderWidth:2,hoverOffset:6}]},
-        options:{responsive:true,maintainAspectRatio:false,cutout:'62%',plugins:{legend:{position:'bottom',labels:{boxWidth:8,padding:7,font:{size:9}}},tooltip:{callbacks:{label:c=>`${c.label}: ${c.raw} students`}}}}
+        options:{responsive:true,maintainAspectRatio:false,cutout:'62%',plugins:{legend:{position:'bottom',labels:{boxWidth:8,padding:7,font:{size:9}}},tooltip:{callbacks:{label:c=>`${c.label}: ${c.raw} students`}},datalabels:{display:false}}}
     });
     const tot=accs.length||1;
     el('distStrip').innerHTML=buckets.map(b=>`<div class="dist-seg" style="width:${(b.v/tot*100).toFixed(1)}%;background:${b.c}"></div>`).join('');
@@ -765,7 +746,7 @@ function renderClassTrend(){
     CHARTS.classTrend=new Chart(el('classTrend'),{
         type:'line',
         data:{labels:labels.length?labels:['No data'],datasets:[{label:'Class Avg %',data:vals.length?vals:[0],borderColor:'#378ADD',backgroundColor:'rgba(55,138,221,0.08)',borderWidth:2,pointRadius:3,pointBackgroundColor:'#378ADD',tension:.38,fill:true}]},
-        options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.raw+'%'}}},scales:{x:{grid:{display:false},ticks:{maxRotation:35,maxTicksLimit:8,font:{size:10}}},y:{min:0,max:100,ticks:{callback:v=>v+'%',font:{size:10}},grid:{color:'rgba(0,0,0,0.04)'}}}}
+        options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.raw+'%'}},datalabels:{display:false}},scales:{x:{grid:{display:false},ticks:{maxRotation:35,maxTicksLimit:8,font:{size:10}}},y:{min:0,max:100,ticks:{callback:v=>v+'%',font:{size:10}},grid:{color:'rgba(0,0,0,0.04)'}}}}
     });
 }
 
@@ -779,7 +760,7 @@ function renderClassRadar(){
     CHARTS.classRadar=new Chart(el('classRadar'),{
         type:'radar',
         data:{labels:SECTIONS,datasets:[{label:'Class Avg %',data:unitAvgs,borderColor:'#7F77DD',backgroundColor:'rgba(127,119,221,0.12)',borderWidth:2,pointBackgroundColor:'#7F77DD',pointRadius:3}]},
-        options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{r:{beginAtZero:true,max:100,ticks:{stepSize:25,font:{size:9},backdropColor:'transparent'},grid:{color:'rgba(0,0,0,0.06)'},angleLines:{color:'rgba(0,0,0,0.06)'},pointLabels:{font:{size:10},color:'#6B6B6B'}}}}
+        options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},datalabels:{display:false}},scales:{r:{beginAtZero:true,max:100,ticks:{stepSize:25,font:{size:9},backdropColor:'transparent'},grid:{color:'rgba(0,0,0,0.06)'},angleLines:{color:'rgba(0,0,0,0.06)'},pointLabels:{font:{size:10},color:'#6B6B6B'}}}}
     });
 }
 
@@ -800,7 +781,7 @@ function renderDiffBar(){
             {label:'Medium',data:mD,backgroundColor:'#FAC775',borderColor:'#EF9F27',borderWidth:1,borderRadius:3},
             {label:'Hard',  data:hD,backgroundColor:'#F09595',borderColor:'#E24B4A',borderWidth:1,borderRadius:3},
         ]},
-        options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,position:'top',labels:{boxWidth:8,padding:8,font:{size:10}}},tooltip:{callbacks:{label:c=>c.dataset.label+': '+c.raw+'%'}}},scales:{x:{grid:{display:false},ticks:{font:{size:10},maxRotation:40}},y:{beginAtZero:true,max:100,ticks:{callback:v=>v+'%',font:{size:10}},grid:{color:'rgba(0,0,0,0.04)'}}}}
+        options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,position:'top',labels:{boxWidth:8,padding:8,font:{size:10}}},tooltip:{callbacks:{label:c=>c.dataset.label+': '+c.raw+'%'}},datalabels:{display:false}},scales:{x:{grid:{display:false},ticks:{font:{size:10},maxRotation:40}},y:{beginAtZero:true,max:100,ticks:{callback:v=>v+'%',font:{size:10}},grid:{color:'rgba(0,0,0,0.04)'}}}}
     });
 }
 
@@ -843,11 +824,6 @@ function renderClassHeatmap(){
 ══════════════════════════════════════════════════════════════ */
 function renderAttemptsUnit(){
     const sids=ALL_STUDENTS.map(s=>s.id);
-    const unitAttempts=SECTIONS.map(u=>{
-        let count=0;
-        sids.forEach(id=>{(QUIZ_BY_SID[id]||[]).forEach(q=>{if(resolveUnits(q).includes(u))count++;});});
-        return count;
-    });
     const unitAttE=SECTIONS.map(u=>{let c=0;sids.forEach(id=>{(QUIZ_BY_SID[id]||[]).forEach(q=>{if(resolveUnits(q).includes(u)&&(q.difficulty||'').toLowerCase()==='easy')c++;});});return c;});
     const unitAttM=SECTIONS.map(u=>{let c=0;sids.forEach(id=>{(QUIZ_BY_SID[id]||[]).forEach(q=>{if(resolveUnits(q).includes(u)&&(q.difficulty||'').toLowerCase()==='medium')c++;});});return c;});
     const unitAttH=SECTIONS.map(u=>{let c=0;sids.forEach(id=>{(QUIZ_BY_SID[id]||[]).forEach(q=>{if(resolveUnits(q).includes(u)&&(q.difficulty||'').toLowerCase()==='hard')c++;});});return c;});
@@ -859,7 +835,7 @@ function renderAttemptsUnit(){
             {label:'Medium',data:unitAttM,backgroundColor:'#FAC775',stack:'s',borderRadius:3},
             {label:'Hard',  data:unitAttH,backgroundColor:'#F09595',stack:'s',borderRadius:3},
         ]},
-        options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,position:'top',labels:{boxWidth:8,padding:8,font:{size:10}}}},scales:{x:{stacked:true,grid:{display:false},ticks:{font:{size:10}}},y:{stacked:true,beginAtZero:true,ticks:{stepSize:1,precision:0,font:{size:10}},grid:{color:'rgba(0,0,0,0.04)'}}}}
+        options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,position:'top',labels:{boxWidth:8,padding:8,font:{size:10}}},datalabels:{display:false}},scales:{x:{stacked:true,grid:{display:false},ticks:{font:{size:10}}},y:{stacked:true,beginAtZero:true,ticks:{stepSize:1,precision:0,font:{size:10}},grid:{color:'rgba(0,0,0,0.04)'}}}}
     });
 }
 
@@ -871,13 +847,13 @@ function renderHistogram(){
     const accs=sids.map(id=>STATS[id]?.acc).filter(a=>a!==null);
     const bins=[0,10,20,30,40,50,60,70,80,90,100];
     const counts=bins.slice(0,-1).map((_,i)=>accs.filter(a=>a>=bins[i]&&a<bins[i+1]).length);
-    counts[counts.length-1]+=accs.filter(a=>a===100).length; // include 100
+    counts[counts.length-1]+=accs.filter(a=>a===100).length;
     const binColors=bins.slice(0,-1).map(b=>b<40?'rgba(226,75,74,0.7)':b<70?'rgba(239,159,39,0.7)':'rgba(99,153,34,0.7)');
     if(CHARTS.histogram)CHARTS.histogram.destroy();
     CHARTS.histogram=new Chart(el('scoreHistogram'),{
         type:'bar',
         data:{labels:bins.slice(0,-1).map((b,i)=>`${b}–${bins[i+1]}`),datasets:[{label:'Students',data:counts,backgroundColor:binColors,borderRadius:4,borderSkipped:false}]},
-        options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.raw+' students'}}},scales:{x:{grid:{display:false},ticks:{font:{size:9}}},y:{beginAtZero:true,ticks:{stepSize:1,precision:0,font:{size:10}},grid:{color:'rgba(0,0,0,0.04)'}}}}
+        options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.raw+' students'}},datalabels:{display:false}},scales:{x:{grid:{display:false},ticks:{font:{size:9}}},y:{beginAtZero:true,ticks:{stepSize:1,precision:0,font:{size:10}},grid:{color:'rgba(0,0,0,0.04)'}}}}
     });
 }
 
@@ -895,7 +871,7 @@ function renderEasyHardScatter(){
     CHARTS.scatter=new Chart(el('easyHardScatter'),{
         type:'scatter',
         data:{datasets:[{label:'Students',data:pts,backgroundColor:pts.map(p=>colorOf(p.acc)+'BB'),pointRadius:6,pointHoverRadius:8}]},
-        options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`${c.raw.label}: Easy ${c.raw.x}%, Hard ${c.raw.y}%`}}},scales:{x:{min:0,max:100,title:{display:true,text:'Easy %',font:{size:10}},ticks:{callback:v=>v+'%',font:{size:10}},grid:{color:'rgba(0,0,0,0.04)'}},y:{min:0,max:100,title:{display:true,text:'Hard %',font:{size:10}},ticks:{callback:v=>v+'%',font:{size:10}},grid:{color:'rgba(0,0,0,0.04)'}}}}
+        options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`${c.raw.label}: Easy ${c.raw.x}%, Hard ${c.raw.y}%`}},datalabels:{display:false}},scales:{x:{min:0,max:100,title:{display:true,text:'Easy %',font:{size:10}},ticks:{callback:v=>v+'%',font:{size:10}},grid:{color:'rgba(0,0,0,0.04)'}},y:{min:0,max:100,title:{display:true,text:'Hard %',font:{size:10}},ticks:{callback:v=>v+'%',font:{size:10}},grid:{color:'rgba(0,0,0,0.04)'}}}}
     });
 }
 
@@ -933,7 +909,7 @@ function renderAttemptsPerStudent(){
     CHARTS.attPS=new Chart(el('attemptsPerStudent'),{
         type:'bar',
         data:{labels,datasets:[{label:'Attempts',data,backgroundColor:data.map(v=>`rgba(55,138,221,${0.25+v/maxA*0.7})`),borderRadius:4}]},
-        options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.raw+' attempts'}}},scales:{x:{grid:{display:false},ticks:{font:{size:10},maxRotation:40}},y:{beginAtZero:true,ticks:{stepSize:1,precision:0,font:{size:10}},grid:{color:'rgba(0,0,0,0.04)'}}}}
+        options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.raw+' attempts'}},datalabels:{display:false}},scales:{x:{grid:{display:false},ticks:{font:{size:10},maxRotation:40}},y:{beginAtZero:true,ticks:{stepSize:1,precision:0,font:{size:10}},grid:{color:'rgba(0,0,0,0.04)'}}}}
     });
 }
 
@@ -948,12 +924,12 @@ function renderScoreSpread(){
     CHARTS.spread=new Chart(el('scoreSpread'),{
         type:'bar',
         data:{labels,datasets:[{label:'Accuracy %',data,backgroundColor:data.map(v=>colorOf(v)+'CC'),borderRadius:3}]},
-        options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.raw+'%'}}},scales:{x:{min:0,max:100,ticks:{callback:v=>v+'%',font:{size:10}},grid:{color:'rgba(0,0,0,0.04)'}},y:{ticks:{font:{size:9}},grid:{display:false}}}}
+        options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.raw+'%'}},datalabels:{display:false}},scales:{x:{min:0,max:100,ticks:{callback:v=>v+'%',font:{size:10}},grid:{color:'rgba(0,0,0,0.04)'}},y:{ticks:{font:{size:9}},grid:{display:false}}}}
     });
 }
 
 /* ══════════════════════════════════════════════════════════════
-   ACTIVITY HEATMAP (by weekday × unit)
+   ACTIVITY HEATMAP (by weekday)
 ══════════════════════════════════════════════════════════════ */
 function renderActivityHeatmap(){
     const days=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
@@ -998,7 +974,7 @@ function renderActivityHeatmap(){
 }
 
 /* ══════════════════════════════════════════════════════════════
-   UNIT SPLIT DONUT (right)
+   UNIT SPLIT DONUT
 ══════════════════════════════════════════════════════════════ */
 function renderUnitDonut(){
     const sids=ALL_STUDENTS.map(s=>s.id);
@@ -1009,7 +985,7 @@ function renderUnitDonut(){
     CHARTS.unitDonut=new Chart(el('unitSplitDonut'),{
         type:'doughnut',
         data:{labels:SECTIONS,datasets:[{data:unitCounts,backgroundColor:['#378ADD','#7F77DD','#1B9E9E','#639922','#EF9F27','#E24B4A'],borderColor:'#fff',borderWidth:2,hoverOffset:4}]},
-        options:{responsive:true,maintainAspectRatio:false,cutout:'55%',plugins:{legend:{position:'bottom',labels:{boxWidth:8,padding:7,font:{size:9}}},tooltip:{callbacks:{label:c=>`${c.label}: ${c.raw} attempts`}}}}
+        options:{responsive:true,maintainAspectRatio:false,cutout:'55%',plugins:{legend:{position:'bottom',labels:{boxWidth:8,padding:7,font:{size:9}}},tooltip:{callbacks:{label:c=>`${c.label}: ${c.raw} attempts`}},datalabels:{display:false}}}
     });
 }
 
@@ -1052,7 +1028,7 @@ function renderRankLists(){
 }
 
 /* ══════════════════════════════════════════════════════════════
-   CLASS INSIGHTS (right)
+   CLASS INSIGHTS
 ══════════════════════════════════════════════════════════════ */
 function renderClassInsights(){
     const sids=ALL_STUDENTS.map(s=>s.id);
@@ -1063,7 +1039,6 @@ function renderClassInsights(){
     const bestI=unitAvgs.indexOf(Math.max(...unitAvgs));
     const worstI=unitAvgs.indexOf(Math.min(...unitAvgs.filter(v=>v>0)));
     const hardAs=sids.map(id=>STATS[id]?.diffAcc.hard).filter(a=>a!==null);
-    const hardAvg=avg(hardAs)||0;
     const totalAtt=sids.reduce((a,id)=>a+(STATS[id]?.attempts||0),0);
     const stdDev=accs.length?Math.round(Math.sqrt(accs.reduce((a,v)=>a+Math.pow(v-(avg(accs)||0),2),0)/accs.length)):0;
     el('classInsights').innerHTML=`
@@ -1076,34 +1051,139 @@ function renderClassInsights(){
 }
 
 /* ══════════════════════════════════════════════════════════════
-   MAIN STACKED BAR
+   MAIN STACKED BAR  ← with datalabels showing unit names
 ══════════════════════════════════════════════════════════════ */
 function rebuildOverallChart(){
-    const unitF=el('chartUnitF').value, diffF=el('chartDiffF').value;
-    const units=unitF==='ALL'?SECTIONS:[unitF];
-    const diffs=diffF==='ALL'?DIFFS:[diffF];
-    const labels=ALL_STUDENTS.map(s=>(s.firstname+' '+s.lastname).trim());
-    const datasets=[];
-    const diffColors={easy:'#6DB33F',medium:'#F5C842',hard:'#E55C5C'};
-    units.forEach(u=>{
-        diffs.forEach(diff=>{
-            const data=ALL_STUDENTS.map(s=>{
-                let sc=0,tot=0;
-                (QUIZ_BY_SID[s.id]||[]).forEach(q=>{
-                    if((q.difficulty||'').toLowerCase()!==diff)return;
-                    if(!resolveUnits(q).includes(u))return;
-                    sc+=parseInt(q.score)||0; tot+=parseInt(q.total)||0;
+    const unitF = el('chartUnitF').value;
+    const diffF = el('chartDiffF').value;
+    const units = unitF === 'ALL' ? SECTIONS : [unitF];
+    const diffs = diffF === 'ALL' ? DIFFS    : [diffF];
+
+    const labels = ALL_STUDENTS.map(s => (s.firstname + ' ' + s.lastname).trim());
+
+    /* Colour palette: one shade per unit, varied by difficulty lightness */
+    const unitPalettes = {
+        U1: { easy:'#90C8F0', medium:'#378ADD', hard:'#1A5FA3' },
+        U2: { easy:'#B5B0EE', medium:'#7F77DD', hard:'#4A43B0' },
+        U3: { easy:'#6DCFCF', medium:'#1B9E9E', hard:'#0D6060' },
+        U4: { easy:'#A3D46A', medium:'#639922', hard:'#3B6D11' },
+        U5: { easy:'#FAD98A', medium:'#EF9F27', hard:'#A56908' },
+        U6: { easy:'#F0A0A0', medium:'#E24B4A', hard:'#A32D2D' },
+    };
+
+    const datasets = [];
+    units.forEach(u => {
+        diffs.forEach(diff => {
+            const bgColor = unitPalettes[u]?.[diff] ?? '#AAAAAA';
+            const data = ALL_STUDENTS.map(s => {
+                let sc = 0, tot = 0;
+                (QUIZ_BY_SID[s.id] || []).forEach(q => {
+                    if ((q.difficulty || '').toLowerCase() !== diff) return;
+                    if (!resolveUnits(q).includes(u)) return;
+                    sc  += parseInt(q.score) || 0;
+                    tot += parseInt(q.total) || 0;
                 });
-                return tot>0?Number((sc/tot*100).toFixed(1)):0;
+                return tot > 0 ? Number((sc / tot * 100).toFixed(1)) : 0;
             });
-            datasets.push({label:u+' '+diff,data,stack:'all',backgroundColor:diffColors[diff],borderColor:'#fff',borderWidth:0.5,borderRadius:2});
+            datasets.push({
+                label: u + ' ' + diff,          /* e.g. "U4 hard" */
+                unitLabel: u,                    /* used by datalabels formatter */
+                diffLabel: diff,
+                data,
+                stack: 'all',
+                backgroundColor: bgColor,
+                borderColor: '#fff',
+                borderWidth: 0.5,
+                borderRadius: 2,
+            });
         });
     });
-    if(CHARTS.overall)CHARTS.overall.destroy();
-    CHARTS.overall=new Chart(el('overallChart'),{
-        type:'bar',
-        data:{labels,datasets},
-        options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.dataset.label+': '+c.raw+'%'}}},scales:{x:{stacked:true,grid:{display:false},ticks:{autoSkip:false,font:{size:10},maxRotation:40}},y:{stacked:true,beginAtZero:true,title:{display:true,text:'Stacked Performance (%)',font:{size:10}},ticks:{font:{size:10}},grid:{color:'rgba(0,0,0,0.04)'}}}}
+
+    if (CHARTS.overall) CHARTS.overall.destroy();
+
+    CHARTS.overall = new Chart(el('overallChart'), {
+        type: 'bar',
+        plugins: [ChartDataLabels],          /* ← scoped to this chart only */
+        data: { labels, datasets },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: c => c.dataset.label + ': ' + c.raw + '%'
+                    }
+                },
+                /* ── Datalabels config ── */
+                datalabels: {
+                    /*
+                     * Only show a label when the segment is tall enough to fit text.
+                     * 8 units of chart-height is a comfortable minimum for 9-10px text.
+                     */
+                   display: function(ctx) {
+                        const value = ctx.dataset.data[ctx.dataIndex];
+                        if (value < 12) return false;  // segment too small for text
+                        // Only show label for the first dataset of each unit per bar
+                        // to avoid "U4" appearing 3x (easy/medium/hard) in the same bar
+                        const thisUnit = ctx.dataset.unitLabel;
+                        const barIdx   = ctx.dataIndex;
+                        const datasets = ctx.chart.data.datasets;
+                        for (let i = 0; i < ctx.datasetIndex; i++) {
+                            if (datasets[i].unitLabel === thisUnit && datasets[i].data[barIdx] >= 12) {
+                                return false;  // an earlier dataset for this unit already shows a label
+                            }
+                        }
+                        return true;
+                    },
+                    /*
+                     * Show "U4" / "U5 hard" depending on filter state.
+                     * When a single difficulty is selected we just show the unit name.
+                     * When all difficulties are shown we add the difficulty initial
+                     * so "U4 h" fits even in narrow bars.
+                     */
+                    formatter: function(value, ctx) {
+                        return ctx.dataset.unitLabel;   /* always just "U1", "U2", etc. */
+                    },
+                    color: '#fff',
+                    font: {
+                        size: 9,
+                        weight: '600',
+                        family: "'DM Mono', monospace",
+                    },
+                    anchor: 'center',
+                    align: 'center',
+                    /* clip keeps text from spilling outside its segment */
+                    clip: true,
+                    overflow: 'hidden',
+                    /* subtle text shadow so labels are readable on light segments */
+                    textShadowColor: 'rgba(0,0,0,0.25)',
+                    textShadowBlur: 3,
+                }
+            },
+            scales: {
+                x: {
+                    stacked: true,
+                    grid: { display: false },
+                    ticks: {
+                        autoSkip: false,
+                        font: { size: 10 },
+                        maxRotation: 40
+                    }
+                },
+                y: {
+                    stacked: true,
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Stacked Performance (%)',
+                        font: { size: 10 }
+                    },
+                    ticks: { font: { size: 10 } },
+                    grid: { color: 'rgba(0,0,0,0.04)' }
+                }
+            }
+        }
     });
 }
 
@@ -1134,6 +1214,7 @@ function filterStudents(){
     el('stuFilterCount').textContent=list.length+' shown';
     renderStudentTable();
 }
+
 function renderStudentTable(){
     if(!FILTERED_STUDENTS.length){
         el('stuTbody').innerHTML=`<tr><td colspan="18" style="text-align:center;padding:20px;font-size:11px;color:var(--muted)">No students match.</td></tr>`;
@@ -1175,20 +1256,22 @@ function renderStudentTable(){
    UTILS
 ══════════════════════════════════════════════════════════════ */
 const el = id => document.getElementById(id);
-function goToStudent(id, name){ window.location.href = M.cfg.wwwroot+'/local/automation/analytics_student.php?studentid='+id+'&name='+encodeURIComponent(name); }
+function goToStudent(id, name){
+    window.location.href = M.cfg.wwwroot + '/local/automation/analytics_student.php?studentid=' + id + '&name=' + encodeURIComponent(name);
+}
 
 /* ══════════════════════════════════════════════════════════════
    BOOT
 ══════════════════════════════════════════════════════════════ */
 Promise.all([post('get_students'), post('get_all_students_quiz')])
-.then(([students, quizData])=>{
-    ALL_STUDENTS = students||[];
-    (quizData||[]).forEach(q=>{
-        const sid=q.studentid; if(!sid)return;
-        if(!QUIZ_BY_SID[sid])QUIZ_BY_SID[sid]=[];
+.then(([students, quizData]) => {
+    ALL_STUDENTS = students || [];
+    (quizData || []).forEach(q => {
+        const sid = q.studentid; if (!sid) return;
+        if (!QUIZ_BY_SID[sid]) QUIZ_BY_SID[sid] = [];
         QUIZ_BY_SID[sid].push(q);
     });
-    ALL_STUDENTS.forEach(s=>{ STATS[s.id]=computeStats(s.id); });
+    ALL_STUDENTS.forEach(s => { STATS[s.id] = computeStats(s.id); });
 
     renderHero();
     renderMetrics();
@@ -1209,9 +1292,9 @@ Promise.all([post('get_students'), post('get_all_students_quiz')])
     renderRankLists();
     renderClassInsights();
 
-    FILTERED_STUDENTS=[...ALL_STUDENTS];
+    FILTERED_STUDENTS = [...ALL_STUDENTS];
     filterStudents();
-}).catch(err=>console.error('Analytics error:', err));
+}).catch(err => console.error('Analytics error:', err));
 </script>
 
 <?php echo $OUTPUT->footer(); ?>

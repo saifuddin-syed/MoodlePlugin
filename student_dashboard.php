@@ -201,6 +201,49 @@ div[data-region="blocks-column"],
 }
 .ch180 { position:relative; height:175px; width:100%; }
 
+/* ── Radar wrapper: chart + unit legend side by side ── */
+.radar-wrap {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+}
+.radar-canvas-wrap {
+    flex: 1 1 0;
+    min-width: 0;
+    height: 175px;
+    position: relative;
+}
+.radar-legend {
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 6px 8px;
+    background: var(--surface-alt);
+    border: 0.5px solid var(--border);
+    border-radius: var(--rsm);
+    align-self: center;
+    min-width: 72px;
+}
+.radar-legend-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+}
+.radar-legend-unit {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--muted);
+    min-width: 22px;
+}
+.radar-legend-pct {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 600;
+}
+
 /* ── Bars ── */
 .bar-row { margin-bottom: 8px; }
 .bar-row:last-child { margin-bottom: 0; }
@@ -371,6 +414,8 @@ div[data-region="blocks-column"],
     .page-title { font-size: 15px; }
     .ag { grid-template-columns: minmax(0,2fr) 65px 52px; }
     .ag span:nth-child(3), .ag span:nth-child(4) { display:none; }
+    .radar-wrap { flex-direction: column; }
+    .radar-legend { align-self: stretch; flex-direction: row; flex-wrap: wrap; justify-content: space-around; }
 }
 </style>
 
@@ -409,11 +454,6 @@ div[data-region="blocks-column"],
         </div>
 
         <div class="card">
-            <div class="card-title">🎯 Sections to focus on</div>
-            <div id="weakSections"><div class="loading"><div class="spinner"></div></div></div>
-        </div>
-
-        <div class="card">
             <div class="card-title">💡 Key insights</div>
             <div id="insightsPanel"><div class="loading"><div class="spinner"></div></div></div>
         </div>
@@ -427,12 +467,17 @@ div[data-region="blocks-column"],
             <div class="sh">Performance overview</div>
             <div class="charts-grid">
                 <div class="card">
-                    <div class="card-title">📈 Accuracy over time</div>
+                    <div class="card-title">📈 Performance over time</div>
                     <div class="ch180"><canvas id="trendChart"></canvas></div>
                 </div>
                 <div class="card">
                     <div class="card-title">🕸 Unit mastery radar</div>
-                    <div class="ch180"><canvas id="radarChart"></canvas></div>
+                    <div class="radar-wrap">
+                        <div class="radar-canvas-wrap"><canvas id="radarChart"></canvas></div>
+                        <div class="radar-legend" id="radarLegend">
+                            <div class="loading" style="padding:4px 0"><div class="spinner"></div></div>
+                        </div>
+                    </div>
                 </div>
                 <div class="card">
                     <div class="card-title">📊 Attempts — unit × difficulty</div>
@@ -468,8 +513,8 @@ div[data-region="blocks-column"],
                 </select>
                 <select id="sortFilter" onchange="filterSections()">
                     <option value="default">Default order</option>
-                    <option value="asc">Score: Low → High</option>
-                    <option value="desc">Score: High → Low</option>
+                    <option value="asc">Performance: Low → High</option>
+                    <option value="desc">Performance: High → Low</option>
                     <option value="attempts">Most attempted</option>
                 </select>
             </div>
@@ -480,7 +525,7 @@ div[data-region="blocks-column"],
             <div class="card-title">📋 Quiz attempt log</div>
             <div class="ag ag-head">
                 <span>Section / Topic</span><span>Unit</span>
-                <span>Difficulty</span><span>Score</span><span>Accuracy</span>
+                <span>Difficulty</span><span>Score</span><span>Performance</span>
             </div>
             <div id="attemptLog"><div class="loading"><div class="spinner"></div></div></div>
         </div>
@@ -496,8 +541,13 @@ div[data-region="blocks-column"],
         </div>
 
         <div class="card">
-            <div class="card-title">⚡ Strongest areas</div>
+            <div class="card-title">⭐ Strongest areas</div>
             <div id="strongSections"><div class="loading"><div class="spinner"></div></div></div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">🎯 Sections to focus on</div>
+            <div id="weakSections"><div class="loading"><div class="spinner"></div></div></div>
         </div>
 
     </div><!-- /col-right -->
@@ -628,19 +678,12 @@ let ALL_QUIZ=[], TOPIC_DATA={}, SECTION_DATA={}, TREND_DATA=[], FLAT=[];
 
 /* ─────────────────────────────────────────────────────────────────────────────
    resolveUnits(quiz)
-   Returns every short unit key (e.g. ["U4","U5","U6"]) that a quiz attempt
-   should be credited to, using a layered detection strategy:
-
-   1. Scan for every "UNIT <roman>" occurrence in topic+unit string (global)
-   2. Section-number prefix match  (4.x → U4,  5.x → U5,  6.x → U6)
-   3. Keyword match against each unit's topic titles (fallback when no tags)
 ───────────────────────────────────────────────────────────────────────────── */
 function resolveUnits(q) {
     const rawStr = ((q.topic || '') + ' ' + (q.unit || '')).toUpperCase();
     const text   = rawStr.toLowerCase();
     const found  = new Set();
 
-    // ── 1: scan for every UNIT <roman> occurrence ──────────────────────────
     const unitRegex = /UNIT\s+(VI|IV|V|III|II|I)/g;
     let m;
     while ((m = unitRegex.exec(rawStr)) !== null) {
@@ -648,14 +691,12 @@ function resolveUnits(q) {
         if (key) found.add(key);
     }
 
-    // ── 2: section-number prefix  e.g. "4.1", "5.12", "6.3" ───────────────
     const secRegex = /\b([4-6])\.\d+/g;
     while ((m = secRegex.exec(text)) !== null) {
         const map = {'4':'U4','5':'U5','6':'U6'};
         if (map[m[1]]) found.add(map[m[1]]);
     }
 
-    // ── 3: keyword match against topic titles (only when still empty) ──────
     if (found.size === 0) {
         Object.entries(DEMO_TOPICS).forEach(([unitName, secs]) => {
             const shortKey = UNIT_MAP[unitName.replace('UNIT ', '').trim()] || null;
@@ -673,18 +714,14 @@ function resolveUnits(q) {
 
 /* ─────────────────────────────────────────────────────────────────────────────
    buildState(data)
-   Credits every quiz attempt to ALL resolved units so that a cross-unit quiz
-   is reflected in every relevant unit's heatmap, radar, and breakdown panels.
 ───────────────────────────────────────────────────────────────────────────── */
 function buildState(data) {
     ALL_QUIZ = data;
 
-    // Initialise per-unit difficulty buckets
     SECTIONS.forEach(s => {
         TOPIC_DATA[s] = { easy:{a:0,s:0,t:0}, medium:{a:0,s:0,t:0}, hard:{a:0,s:0,t:0} };
     });
 
-    // Initialise per-section accumulators
     Object.keys(DEMO_TOPICS).forEach(u => {
         SECTION_DATA[u] = {};
         Object.keys(DEMO_TOPICS[u]).forEach(sec => {
@@ -697,7 +734,6 @@ function buildState(data) {
         const score = parseInt(q.score) || 0;
         const total = parseInt(q.total) || 0;
 
-        // ── Credit TOPIC_DATA for every resolved unit ──────────────────────
         const units = resolveUnits(q);
         units.forEach(u => {
             if (TOPIC_DATA[u]?.[diff]) {
@@ -707,9 +743,6 @@ function buildState(data) {
             }
         });
 
-        // ── Credit SECTION_DATA: match against every topic title ───────────
-        // Already unit-agnostic by design — a quiz whose topic text matches
-        // titles in multiple units naturally lands in all of them.
         Object.entries(DEMO_TOPICS).forEach(([unit, secs]) => {
             Object.entries(secs).forEach(([sec, title]) => {
                 const tl  = (q.topic || '').toLowerCase();
@@ -723,7 +756,6 @@ function buildState(data) {
             });
         });
 
-        // ── Trend data ─────────────────────────────────────────────────────
         if (q.timecreated && total > 0) {
             TREND_DATA.push({
                 ts:  parseInt(q.timecreated),
@@ -737,10 +769,28 @@ function buildState(data) {
 
 function statusOf(p){ if(p===null)return{label:"Not Attempted",cls:"bm",color:"#A8A8A8"};if(p<40)return{label:"Weak",cls:"bw",color:"#E24B4A"};if(p<70)return{label:"Average",cls:"ba",color:"#EF9F27"};return{label:"Strong",cls:"bs",color:"#639922"}; }
 function gradeOf(a){ if(a>=90)return{l:"A+",bg:"#EAF3DE",c:"#3B6D11"};if(a>=80)return{l:"A",bg:"#EAF3DE",c:"#3B6D11"};if(a>=70)return{l:"B",bg:"#E8F2FC",c:"#185FA5"};if(a>=60)return{l:"C",bg:"#FEF3E0",c:"#854F0B"};if(a>=50)return{l:"D",bg:"#FEF3E0",c:"#854F0B"};return{l:"F",bg:"#FCEBEB",c:"#A32D2D"}; }
-function unitPct(u){ const d=TOPIC_DATA[u],s=d.easy.s+d.medium.s+d.hard.s,t=d.easy.t+d.medium.t+d.hard.t;return t>0?Math.round(s/t*100):null; }
+
+/* unitPct: weighted score blending accuracy (70%) + attempt coverage (30%) */
+function unitPct(u) {
+    const d = TOPIC_DATA[u];
+    const s = d.easy.s + d.medium.s + d.hard.s;
+    const t = d.easy.t + d.medium.t + d.hard.t;
+    const a = d.easy.a + d.medium.a + d.hard.a;
+    if (t === 0) return null;
+    // Max possible attempts per unit = number of sections in that unit * 3 difficulties
+    const unitKey = Object.entries(UNIT_MAP).find(([,v]) => v === u)?.[0];
+    const unitName = unitKey ? 'UNIT ' + unitKey : null;
+    const numSecs = unitName && DEMO_TOPICS[unitName] ? Object.keys(DEMO_TOPICS[unitName]).length : 10;
+    const maxAttempts = numSecs * 3;
+    const coverageBonus = Math.min(a / maxAttempts, 1) * 100;
+    const rawAcc = Math.round(s / t * 100);
+    return Math.round(rawAcc * 0.70 + coverageBonus * 0.30);
+}
 
 /* ────────────────────────────────────────────────────
    PERFORMANCE INDEX  (0–100)
+   Weights: Raw accuracy 45%, Coverage 25%, Mastery 20%, Hard accuracy 10%
+   (Consistency and Recent trend removed)
 ────────────────────────────────────────────────────── */
 function computePI() {
     const tS=ALL_QUIZ.reduce((a,q)=>a+(parseInt(q.score)||0),0);
@@ -752,37 +802,22 @@ function computePI() {
     const coverage   = pcts.length / totalSec * 100;
     const mastery    = pcts.length ? pcts.filter(p=>p>=70).length / pcts.length * 100 : 0;
 
-    const r10=TREND_DATA.slice(-10).map(d=>d.pct);
-    let consistency=100;
-    if(r10.length>1){ const avg=r10.reduce((a,b)=>a+b,0)/r10.length; consistency=Math.max(0,100-Math.sqrt(r10.reduce((a,v)=>a+Math.pow(v-avg,2),0)/r10.length)); }
-
     const hT=SECTIONS.reduce((a,u)=>a+TOPIC_DATA[u].hard.t,0);
     const hS=SECTIONS.reduce((a,u)=>a+TOPIC_DATA[u].hard.s,0);
     const hardAcc = hT>0 ? hS/hT*100 : rawAcc*0.5;
 
-    const first5=TREND_DATA.slice(-10,-5).map(d=>d.pct), last5=TREND_DATA.slice(-5).map(d=>d.pct);
-    const avg5=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:null;
-    const f5=avg5(first5), l5=avg5(last5);
-    let trend=50;
-    if(f5!==null&&l5!==null){ trend=Math.min(100,Math.max(0,50+(l5-f5))); }
-    else if(l5!==null){ trend=l5; }
-
-    const pi =  rawAcc    * 0.30
-              + coverage  * 0.20
+    const pi =  rawAcc    * 0.45
+              + coverage  * 0.25
               + mastery   * 0.20
-              + consistency*0.15
-              + hardAcc   * 0.10
-              + trend     * 0.05;
+              + hardAcc   * 0.10;
 
     return {
         score: Math.round(Math.min(100, Math.max(0, pi))),
         factors: [
-            { name:"Raw accuracy",    val:Math.round(rawAcc),     weight:30 },
-            { name:"Coverage",        val:Math.round(coverage),   weight:20 },
-            { name:"Mastery quality", val:Math.round(mastery),    weight:20 },
-            { name:"Consistency",     val:Math.round(consistency),weight:15 },
-            { name:"Hard accuracy",   val:Math.round(hardAcc),    weight:10 },
-            { name:"Recent trend",    val:Math.round(trend),      weight:5  },
+            { name:"Raw accuracy",    val:Math.round(rawAcc),   weight:45 },
+            { name:"Coverage",        val:Math.round(coverage), weight:25 },
+            { name:"Mastery quality", val:Math.round(mastery),  weight:20 },
+            { name:"Hard accuracy",   val:Math.round(hardAcc),  weight:10 },
         ]
     };
 }
@@ -901,6 +936,20 @@ function renderCharts() {
         options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
             scales:{r:{beginAtZero:true,max:100,ticks:{stepSize:25,font:{size:9},backdropColor:"transparent"},grid:{color:"rgba(0,0,0,0.07)"},angleLines:{color:"rgba(0,0,0,0.07)"},pointLabels:{font:{size:10},color:"#6B6B6B"}}}}});
 
+    // Render radar legend with per-unit accuracy
+    const acOf=a=>a===null?"#A8A8A8":a>=70?"#639922":a>=40?"#EF9F27":"#E24B4A";
+    document.getElementById("radarLegend").innerHTML = SECTIONS.map(u => {
+        const d = TOPIC_DATA[u];
+        const s = d.easy.s + d.medium.s + d.hard.s;
+        const t = d.easy.t + d.medium.t + d.hard.t;
+        const rawAcc = t > 0 ? Math.round(s / t * 100) : null;
+        const color = acOf(rawAcc);
+        return `<div class="radar-legend-row">
+            <span class="radar-legend-unit">${u}</span>
+            <span class="radar-legend-pct" style="color:${color}">${rawAcc !== null ? rawAcc + '%' : '—'}</span>
+        </div>`;
+    }).join('');
+
     const totalSec=Object.values(DEMO_TOPICS).reduce((a,u)=>a+Object.keys(u).length,0);
     const pcts=[]; Object.values(SECTION_DATA).forEach(secs=>Object.values(secs).forEach(d=>{ if(d.total>0) pcts.push(Math.round(d.score/d.total*100)); }));
     const d1=pcts.filter(p=>p>=70).length,d2=pcts.filter(p=>p>=40&&p<70).length,d3=pcts.filter(p=>p<40).length,d4=totalSec-pcts.length;
@@ -929,11 +978,39 @@ function buildFlat(){
     });
 }
 
+/* renderWeakStrong: ranks sections by a composite of accuracy + attempts weight */
 function renderWeakStrong() {
-    const att=FLAT.filter(r=>r.pct!==null);
-    const bars=arr=>!arr.length?`<p style="font-size:11px;color:var(--hint)">No data yet.</p>`:arr.map(r=>`<div class="bar-row"><div class="bar-meta"><span class="bar-name" title="${r.title}">${r.title}</span><span class="bar-pct" style="color:${r.color}">${r.pct}%</span></div><div class="bar-track"><div class="bar-fill" style="width:${r.pct}%;background:${r.color}"></div></div></div>`).join("");
-    document.getElementById("weakSections").innerHTML  =bars([...att].sort((a,b)=>a.pct-b.pct).slice(0,8));
-    document.getElementById("strongSections").innerHTML=bars([...att].sort((a,b)=>b.pct-a.pct).slice(0,8));
+    const att = FLAT.filter(r => r.pct !== null);
+    if (!att.length) {
+        document.getElementById("weakSections").innerHTML  = `<p style="font-size:11px;color:var(--hint)">No data yet.</p>`;
+        document.getElementById("strongSections").innerHTML= `<p style="font-size:11px;color:var(--hint)">No data yet.</p>`;
+        return;
+    }
+
+    // Compute max attempts for normalisation
+    const maxAttempts = Math.max(...att.map(r => r.attempts), 1);
+
+    // Composite score: 75% accuracy + 25% attempt coverage
+    const composite = r => r.pct * 0.75 + (r.attempts / maxAttempts * 100) * 0.25;
+
+    const bars = arr => arr.map(r => {
+        const cp = Math.round(composite(r));
+        return `<div class="bar-row">
+            <div class="bar-meta">
+                <span class="bar-name" title="${r.title}">${r.title}</span>
+                <span class="bar-pct" style="color:${r.color}">${r.pct}%</span>
+            </div>
+            <div class="bar-track">
+                <div class="bar-fill" style="width:${r.pct}%;background:${r.color}"></div>
+            </div>
+        </div>`;
+    }).join("");
+
+    const sorted = [...att].sort((a, b) => composite(b) - composite(a));
+    document.getElementById("strongSections").innerHTML = bars(sorted.slice(0, 8));
+
+    const weakSorted = [...att].sort((a, b) => composite(a) - composite(b));
+    document.getElementById("weakSections").innerHTML   = bars(weakSorted.slice(0, 8));
 }
 
 function renderInsights() {
@@ -946,8 +1023,8 @@ function renderInsights() {
     const r5=TREND_DATA.slice(-5).map(d=>d.pct),tr=r5.length>=2?r5[r5.length-1]-r5[0]:0;
     const rows=[
         {val:avgSec+"%",  label:"Avg section score",   sub:"across attempted",       color:"#7F77DD"},
-        {val:best.unit,   label:"Strongest unit",       sub:`${best.pct}% accuracy`,  color:"#639922"},
-        {val:worst.unit,  label:"Needs most work",      sub:`${worst.pct}% accuracy`, color:"#E24B4A"},
+        {val:best.unit,   label:"Strongest unit",       sub:`${best.pct}% score`,     color:"#639922"},
+        {val:worst.unit,  label:"Needs most work",      sub:`${worst.pct}% score`,    color:"#E24B4A"},
         {val:hAcc!==null?hAcc+"%":"—", label:"Hard accuracy", sub:`${hS}/${hT} marks`, color:"#EF9F27"},
         {val:(tr>0?"↑ ":tr<0?"↓ ":"→ ")+Math.abs(Math.round(tr))+"%", label:"Recent trend", sub:"last 5 attempts", color:tr>5?"#639922":tr<-5?"#E24B4A":"#6B6B6B"},
         {val:FLAT.filter(r=>r.pct===null).length, label:"Not attempted yet", sub:"of "+FLAT.length+" total", color:"#378ADD"},
@@ -985,7 +1062,7 @@ function filterSections() {
     else if(o==="desc") rows.sort((a,b)=>(b.pct??-1)-(a.pct??-1));
     else if(o==="attempts") rows.sort((a,b)=>b.attempts-a.attempts);
     if(!rows.length){document.getElementById("sectionTableWrap").innerHTML=`<p style="font-size:11px;color:var(--hint);padding:8px 0">No sections match.</p>`;return;}
-    let html=`<table class="sec-table"><thead><tr><th>Sec</th><th>Title</th><th>Unit</th><th>Attempts</th><th>Score</th><th>Accuracy</th><th>Status</th></tr></thead><tbody>`;
+    let html=`<table class="sec-table"><thead><tr><th>Sec</th><th>Title</th><th>Unit</th><th>Attempts</th><th>Score</th><th>Performance</th><th>Status</th></tr></thead><tbody>`;
     rows.forEach(r=>{ html+=`<tr><td style="font-family:var(--mono);font-size:10px;color:var(--muted)">${r.sec}</td><td>${r.title}</td><td><span class="badge bb">${r.unit}</span></td><td style="font-family:var(--mono);font-size:11px">${r.attempts}</td><td style="font-family:var(--mono);font-size:11px">${r.score}/${r.total}</td><td><span style="font-family:var(--mono);font-size:11px;color:${r.color}">${r.pct!==null?r.pct+"%":"—"}</span><span class="mbar"><span class="mfill" style="width:${r.pct||0}%;background:${r.color}"></span></span></td><td><span class="badge ${r.cls}">${r.status}</span></td></tr>`; });
     document.getElementById("sectionTableWrap").innerHTML=html+`</tbody></table>`;
 }
@@ -996,7 +1073,6 @@ function renderAttemptLog() {
     const dc={easy:"bs",medium:"ba",hard:"bw"};
     document.getElementById("attemptLog").innerHTML=[...ALL_QUIZ].sort((a,b)=>(parseInt(b.timecreated)||0)-(parseInt(a.timecreated)||0)).map(q=>{
         const d=(q.difficulty||"").toLowerCase(),sc=parseInt(q.score)||0,tot=parseInt(q.total)||0,pct=tot>0?Math.round(sc/tot*100):0;
-        // Show all resolved units for cross-unit quizzes
         const resolvedUnits = resolveUnits(q);
         const unitDisplay = resolvedUnits.length > 0 ? resolvedUnits.join(', ') : (q.unit || '—');
         return `<div class="ag ag-row" style="cursor:pointer;" onclick="window.location.href='${M.cfg.wwwroot}/local/automation/student_quiz_analysis.php?quizid=${q.id}'"><span style="font-size:11px">${q.topic||"—"}</span><span style="font-size:10px;color:var(--muted);font-family:var(--mono)">${unitDisplay}</span><span><span class="badge ${dc[d]||"bm"}">${d||"—"}</span></span><span style="font-family:var(--mono);font-size:11px">${sc}/${tot}</span><span style="font-family:var(--mono);font-size:11px;color:${statusOf(pct).color}">${pct}%</span></div>`;

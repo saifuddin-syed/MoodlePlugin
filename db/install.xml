@@ -47,6 +47,7 @@
                 <FIELD NAME="teacherid" TYPE="int" LENGTH="10" NOTNULL="true"/>
                 <FIELD NAME="courseid" TYPE="int" LENGTH="10" NOTNULL="true"/>
                 <FIELD NAME="advice" TYPE="text" NOTNULL="true"/>
+                <FIELD NAME="sender" TYPE="char" LENGTH="10" NOTNULL="true"/>
                 <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true"/>
             </FIELDS>
             <KEYS>

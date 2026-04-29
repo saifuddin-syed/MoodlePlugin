@@ -1106,6 +1106,11 @@ function rebuildOverallChart(){
         plugins: [ChartDataLabels],          /* ← scoped to this chart only */
         data: { labels, datasets },
         options: {
+            animation: {
+            onComplete: function() {
+                    this.update('none');
+                }
+            },
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
@@ -1122,19 +1127,13 @@ function rebuildOverallChart(){
                      * 8 units of chart-height is a comfortable minimum for 9-10px text.
                      */
                    display: function(ctx) {
-                        const value = ctx.dataset.data[ctx.dataIndex];
-                        if (value < 12) return false;  // segment too small for text
-                        // Only show label for the first dataset of each unit per bar
-                        // to avoid "U4" appearing 3x (easy/medium/hard) in the same bar
-                        const thisUnit = ctx.dataset.unitLabel;
-                        const barIdx   = ctx.dataIndex;
-                        const datasets = ctx.chart.data.datasets;
-                        for (let i = 0; i < ctx.datasetIndex; i++) {
-                            if (datasets[i].unitLabel === thisUnit && datasets[i].data[barIdx] >= 12) {
-                                return false;  // an earlier dataset for this unit already shows a label
-                            }
-                        }
-                        return true;
+                        const chart = ctx.chart;
+                        if (!chart.chartArea) return false;
+                        const meta = chart.getDatasetMeta(ctx.datasetIndex);
+                        const bar = meta.data[ctx.dataIndex];
+                        if (!bar || bar.base === undefined || bar.y === undefined) return false;
+                        const barHeight = Math.abs(bar.base - bar.y);
+                        return barHeight >= 16;
                     },
                     /*
                      * Show "U4" / "U5 hard" depending on filter state.

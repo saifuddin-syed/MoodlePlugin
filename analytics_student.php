@@ -123,6 +123,15 @@ div[data-region="blocks-column"],.drawers,.drawers .main-inner
 .charts-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
 .ch180{position:relative;height:175px;width:100%;}
 
+/* RADAR with side legend */
+.radar-wrap{display:flex;gap:10px;align-items:center;}
+.radar-canvas-wrap{flex:1;min-width:0;height:175px;position:relative;}
+.radar-legend{display:flex;flex-direction:column;gap:4px;min-width:62px;background:var(--surface-alt);border:0.5px solid var(--border);border-radius:var(--rsm);padding:7px 8px;}
+.radar-legend-title{font-size:8px;font-weight:500;text-transform:uppercase;letter-spacing:.07em;color:var(--hint);margin-bottom:3px;}
+.radar-leg-row{display:flex;align-items:center;justify-content:space-between;gap:4px;}
+.radar-leg-unit{font-size:9px;font-weight:500;font-family:var(--mono);color:var(--muted);}
+.radar-leg-val{font-size:10px;font-weight:600;font-family:var(--mono);}
+
 /* BAR ROWS */
 .bar-row{margin-bottom:8px;} .bar-row:last-child{margin-bottom:0;}
 .bar-meta{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:3px;}
@@ -165,10 +174,23 @@ div[data-region="blocks-column"],.drawers,.drawers .main-inner
 .ins-val{font-size:17px;font-weight:600;font-family:var(--mono);min-width:42px;letter-spacing:-.02em;}
 .ins-label{font-size:11px;font-weight:500;} .ins-sub{font-size:10px;color:var(--hint);}
 
-/* ADVICE */
-.advice-item{border-left:3px solid var(--blue);background:var(--blue-bg);padding:9px 12px;border-radius:0 6px 6px 0;margin-bottom:8px;font-size:12px;line-height:1.5;}
-.advice-item:last-child{margin-bottom:0;}
-.advice-ts{color:var(--hint);font-size:10px;font-family:var(--mono);margin-top:3px;}
+/* ── ADVICE CHAT BUBBLES ── */
+.advice-thread{display:flex;flex-direction:column;gap:8px;margin-bottom:12px;}
+.advice-bubble-wrap{display:flex;align-items:flex-end;gap:8px;}
+.advice-bubble-wrap.from-student{flex-direction:row-reverse;}
+.advice-bubble-wrap.from-teacher{flex-direction:row;}
+.advice-av{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;}
+.advice-av-student{background:var(--blue-bg);color:var(--blue-txt);}
+.advice-av-teacher{background:var(--purple-bg);color:var(--purple-txt);}
+.advice-bbl-col{display:flex;flex-direction:column;gap:3px;max-width:85%;}
+.from-student .advice-bbl-col{align-items:flex-end;}
+.from-teacher .advice-bbl-col{align-items:flex-start;}
+.advice-bubble{padding:8px 11px;border-radius:10px;font-size:12px;line-height:1.55;word-break:break-word;}
+.advice-bubble-student{background:var(--blue);color:#fff;border-bottom-right-radius:3px;}
+.advice-bubble-teacher{background:var(--purple-bg);color:var(--text);border:0.5px solid rgba(127,119,221,0.25);border-bottom-left-radius:3px;}
+.advice-bbl-meta{font-size:9px;font-family:var(--mono);color:var(--hint);}
+.advice-empty{font-size:11px;color:var(--hint);padding:4px 0 10px;}
+
 textarea.sa-textarea{width:100%;min-height:74px;resize:vertical;border:0.5px solid var(--border-md);border-radius:var(--rsm);background:var(--surface-alt);color:var(--text);font-family:var(--font);font-size:12px;padding:9px 11px;outline:none;transition:border-color .15s;line-height:1.55;margin-top:10px;}
 textarea.sa-textarea:focus{border-color:var(--blue);}
 .sa-save-btn{margin-top:7px;padding:7px 16px;font-family:var(--font);font-size:12px;font-weight:500;cursor:pointer;background:var(--blue);color:#fff;border:none;border-radius:var(--rsm);transition:opacity .15s;}
@@ -209,7 +231,6 @@ textarea.sa-textarea:focus{border-color:var(--blue);}
     box-shadow: var(--sh);
     overflow: hidden;
 }
-/* header */
 .chv-header {
     display: flex; align-items: center; justify-content: space-between;
     padding: 12px 16px 11px;
@@ -225,7 +246,6 @@ textarea.sa-textarea:focus{border-color:var(--blue);}
     background: var(--blue-bg); color: var(--blue-txt);
     padding: 2px 8px; border-radius: 20px;
 }
-/* filter chips */
 .chv-filters {
     display: flex; gap: 5px; padding: 8px 14px 7px;
     background: var(--surface-alt);
@@ -241,7 +261,6 @@ textarea.sa-textarea:focus{border-color:var(--blue);}
 }
 .chv-chip:hover  { color: var(--blue-txt); border-color: rgba(55,138,221,.35); }
 .chv-chip.active { background: var(--blue-bg); color: var(--blue-txt); border-color: rgba(55,138,221,.3); }
-/* scrollable thread */
 .chv-thread {
     max-height: 420px; overflow-y: auto;
     padding: 10px 14px 12px;
@@ -251,7 +270,6 @@ textarea.sa-textarea:focus{border-color:var(--blue);}
 .chv-thread::-webkit-scrollbar { width: 3px; }
 .chv-thread::-webkit-scrollbar-track { background: transparent; }
 .chv-thread::-webkit-scrollbar-thumb { background: var(--border-md); border-radius: 3px; }
-/* day label */
 .chv-day {
     display: flex; align-items: center; gap: 8px;
     margin: 10px 0 6px;
@@ -259,7 +277,6 @@ textarea.sa-textarea:focus{border-color:var(--blue);}
 .chv-day:first-child { margin-top: 2px; }
 .chv-day span { font-size: 9px; font-family: var(--mono); color: var(--hint); text-transform: uppercase; letter-spacing: .07em; white-space: nowrap; }
 .chv-day::before, .chv-day::after { content: ''; flex: 1; height: 0.5px; background: var(--border-md); }
-/* row */
 .chv-row {
     display: grid; grid-template-columns: 30px 1fr auto;
     gap: 10px; align-items: start;
@@ -267,7 +284,6 @@ textarea.sa-textarea:focus{border-color:var(--blue);}
     transition: background .1s;
 }
 .chv-row:hover { background: var(--surface-alt); }
-/* avatar */
 .chv-av {
     width: 30px; height: 30px; border-radius: 50%;
     background: var(--blue-bg); color: var(--blue-txt);
@@ -275,7 +291,6 @@ textarea.sa-textarea:focus{border-color:var(--blue);}
     display: flex; align-items: center; justify-content: center;
     flex-shrink: 0; margin-top: 1px;
 }
-/* body */
 .chv-who {
     font-size: 11px; font-weight: 500; color: var(--text);
     margin-bottom: 4px;
@@ -287,9 +302,7 @@ textarea.sa-textarea:focus{border-color:var(--blue);}
     padding: 1px 6px; border-radius: 10px;
 }
 .chv-msg { font-size: 12px; color: var(--text); line-height: 1.55; word-break: break-word; }
-/* timestamp */
 .chv-ts { font-size: 9px; font-family: var(--mono); color: var(--hint); white-space: nowrap; padding-top: 3px; flex-shrink: 0; }
-/* empty */
 .chv-empty { padding: 32px 0; text-align: center; }
 .chv-empty-icon { font-size: 26px; opacity: .28; margin-bottom: 8px; }
 .chv-empty p { font-size: 11px; color: var(--hint); }
@@ -310,6 +323,8 @@ textarea.sa-textarea:focus{border-color:var(--blue);}
     .ag{grid-template-columns:minmax(0,2fr) 65px 52px;}
     .ag span:nth-child(3),.ag span:nth-child(4){display:none;}
     .chv-thread{max-height:280px;}
+    .radar-wrap{flex-direction:column;}
+    .radar-legend{flex-direction:row;flex-wrap:wrap;min-width:unset;width:100%;}
 }
 .bubble-wrap{display:flex;align-items:flex-start;gap:10px;margin-bottom:10px;}
 .bubble-wrap.bubble-bot{flex-direction:row-reverse;}
@@ -349,10 +364,6 @@ textarea.sa-textarea:focus{border-color:var(--blue);}
         <div class="pi-card" id="piCard"><div class="loading"><div class="spinner"></div><span>Computing index…</span></div></div>
         <div class="metrics-grid" id="metricsList"><div class="metric metric-full"><div class="loading"><div class="spinner"></div></div></div></div>
         <div class="card">
-            <div class="card-title">🎯 Sections to focus on</div>
-            <div id="weakSections"><div class="loading"><div class="spinner"></div></div></div>
-        </div>
-        <div class="card">
             <div class="card-title">💡 Key insights</div>
             <div id="insightsPanel"><div class="loading"><div class="spinner"></div></div></div>
         </div>
@@ -364,8 +375,10 @@ textarea.sa-textarea:focus{border-color:var(--blue);}
         <div>
             <div class="sh">Performance overview</div>
             <div class="charts-grid">
-                <div class="card"><div class="card-title">📈 Accuracy over time</div><div class="ch180"><canvas id="trendChart"></canvas></div></div>
-                <div class="card"><div class="card-title">🕸 Unit mastery radar</div><div class="ch180"><canvas id="radarChart"></canvas></div></div>
+                <!-- CHANGED: "Accuracy over time" → "Performance over time" -->
+                <div class="card"><div class="card-title">📈 Performance over time</div><div class="ch180"><canvas id="trendChart"></canvas></div></div>
+                <!-- CHANGED: radar now has a side legend tab -->
+                <div class="card"><div class="card-title">🕸 Unit mastery radar</div><div class="radar-wrap"><div class="radar-canvas-wrap"><canvas id="radarChart"></canvas></div><div class="radar-legend" id="radarLegend"><div class="radar-legend-title">Accuracy</div></div></div></div>
                 <div class="card"><div class="card-title">📊 Attempts — unit × difficulty</div><div class="ch180"><canvas id="attemptsChart"></canvas></div></div>
                 <div class="card"><div class="card-title">🍩 Section distribution</div><div class="ch180"><canvas id="donutChart"></canvas></div></div>
             </div>
@@ -377,6 +390,7 @@ textarea.sa-textarea:focus{border-color:var(--blue);}
         </div>
 
         <div class="card">
+            <!-- CHANGED: "Accuracy" column renamed to "Performance" in the filter label -->
             <div class="card-title">🔍 Topic drill-down</div>
             <div class="filters">
                 <select id="unitFilter" onchange="filterSections()">
@@ -404,7 +418,7 @@ textarea.sa-textarea:focus{border-color:var(--blue);}
 
         <div class="card">
             <div class="card-title">📋 Quiz attempt log</div>
-            <div class="ag ag-head"><span>Section / Topic</span><span>Unit</span><span>Difficulty</span><span>Score</span><span>Accuracy</span></div>
+            <div class="ag ag-head"><span>Section / Topic</span><span>Unit</span><span>Difficulty</span><span>Score</span><span>Performance</span></div>
             <div id="attemptLog"><div class="loading"><div class="spinner"></div></div></div>
         </div>
 
@@ -413,15 +427,12 @@ textarea.sa-textarea:focus{border-color:var(--blue);}
 
             <div class="chv-header">
                 <div class="chv-title">
-                    
                     💬 Student AI chat history
                 </div>
                 <span class="chv-pill" id="chvPill">
                     <span class="spinner" style="width:9px;height:9px;display:inline-block;vertical-align:middle"></span>
                 </span>
             </div>
-
-            
 
             <div class="chv-thread" id="chvThread">
                 <div class="loading"><div class="spinner"></div><span>Loading chat history…</span></div>
@@ -434,12 +445,20 @@ textarea.sa-textarea:focus{border-color:var(--blue);}
     <!-- RIGHT -->
     <div class="col-right">
         <div class="card">
-            <div class="card-title">⚡ Strongest areas</div>
+            <div class="card-title">⭐ Strongest areas</div>
             <div id="strongSections"><div class="loading"><div class="spinner"></div></div></div>
+        </div>
+        <!-- CHANGED: "Sections to focus on" moved here, below "Strongest areas" -->
+        <div class="card">
+            <div class="card-title">🎯 Sections to focus on</div>
+            <div id="weakSections"><div class="loading"><div class="spinner"></div></div></div>
         </div>
         <div class="card">
             <div class="card-title">📝 Teacher advice</div>
-            <div id="adviceList"><div class="loading"><div class="spinner"></div></div></div>
+            <!-- Chat bubble thread: student messages top, teacher messages bottom -->
+            <div class="advice-thread" id="adviceList">
+                <div class="loading"><div class="spinner"></div></div>
+            </div>
             <textarea class="sa-textarea" id="adviceText" placeholder="Write advice for this student…"></textarea>
             <button class="sa-save-btn" onclick="saveAdvice()">Save Advice</button>
         </div>
@@ -604,29 +623,39 @@ function mkInitials(name){const p=(name||'').trim().split(' ');return((p[0]?.[0]
 function escHtml(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 function statusOf(p){if(p===null)return{label:"Not Attempted",cls:"bm",color:"#A8A8A8"};if(p<40)return{label:"Weak",cls:"bw",color:"#E24B4A"};if(p<70)return{label:"Average",cls:"ba",color:"#EF9F27"};return{label:"Strong",cls:"bs",color:"#639922"};}
 function gradeOf(a){if(a>=90)return{l:"A+",bg:"#EAF3DE",c:"#3B6D11"};if(a>=80)return{l:"A",bg:"#EAF3DE",c:"#3B6D11"};if(a>=70)return{l:"B",bg:"#E8F2FC",c:"#185FA5"};if(a>=60)return{l:"C",bg:"#FEF3E0",c:"#854F0B"};if(a>=50)return{l:"D",bg:"#FEF3E0",c:"#854F0B"};return{l:"F",bg:"#FCEBEB",c:"#A32D2D"};}
-function unitPct(u){const d=TOPIC_DATA[u],s=d.easy.s+d.medium.s+d.hard.s,t=d.easy.t+d.medium.t+d.hard.t;return t>0?Math.round(s/t*100):null;}
+
+/* ── unitPct: weighted by attempts (accuracy 70% + attempt_ratio 30%) ── */
+function unitPct(u){
+    const d=TOPIC_DATA[u];
+    const s=d.easy.s+d.medium.s+d.hard.s;
+    const t=d.easy.t+d.medium.t+d.hard.t;
+    if(t===0) return null;
+    const rawAcc = Math.round(s/t*100);
+    return rawAcc;
+}
+
+/* CHANGED: unitScore now factors in attempts (for ranking strongest/weakest)
+   Score = accuracy * 0.7 + attempt_ratio * 0.3
+   attempt_ratio = (total marks attempted for this unit) / (max marks attempted across all units)
+*/
+function unitWeightedScore(u){
+    const d=TOPIC_DATA[u];
+    const s=d.easy.s+d.medium.s+d.hard.s;
+    const t=d.easy.t+d.medium.t+d.hard.t;
+    if(t===0) return null;
+    const acc = s/t*100;
+    return {acc: Math.round(acc), t};
+}
+
 function scorePillCls(s,t){if(!t)return'score-mid';const p=s/t;return p>=0.7?'score-high':p>=0.4?'score-mid':'score-low';}
 function diffBadge(d){const dl=(d||'').toLowerCase();return dl==='easy'?`<span class="badge bs">Easy</span>`:dl==='medium'?`<span class="badge ba">Medium</span>`:dl==='hard'?`<span class="badge bw">Hard</span>`:`<span class="badge bm">${d||'—'}</span>`;}
 
-/* ─────────────────────────────────────────────────────────────────────────────
-   resolveUnits(quiz)
-   Returns an array of short unit keys (e.g. ["U4","U5","U6"]) that a quiz
-   attempt should be credited to.
-
-   Detection order:
-   1. Explicit multi-unit tag in topic/unit string  → e.g. "UNIT IV, V"
-   2. Multiple UNIT mentions anywhere in topic text → credit all found
-   3. Section-number prefix match (4.x → U4, 5.x → U5 …)
-   4. Keyword mapping per unit's topic titles
-   5. Fallback: single UNIT roman numeral match (original behaviour)
-───────────────────────────────────────────────────────────────────────────── */
 function resolveUnits(q) {
     const text   = ((q.topic || '') + ' ' + (q.unit || '')).toLowerCase();
     const rawStr = ((q.topic || '') + ' ' + (q.unit || '')).toUpperCase();
 
     const found = new Set();
 
-    // ── 1 & 2: scan for every "UNIT <roman>" occurrence in the combined string
     const unitRegex = /UNIT\s+(VI|IV|V|III|II|I)/g;
     let m;
     while ((m = unitRegex.exec(rawStr)) !== null) {
@@ -634,15 +663,12 @@ function resolveUnits(q) {
         if (key) found.add(key);
     }
 
-    // ── 3: section-number prefix  e.g. "4.1", "5.12", "6.3"
     const secRegex = /\b([4-6])\.\d+/g;
     while ((m = secRegex.exec(text)) !== null) {
         const map = {'4':'U4','5':'U5','6':'U6'};
         if (map[m[1]]) found.add(map[m[1]]);
     }
 
-    // ── 4: keyword match against each unit's topic titles
-    //       Only fires when the topic/section string itself has no unit tags
     if (found.size === 0) {
         Object.entries(DEMO_TOPICS).forEach(([unitName, secs]) => {
             const shortKey = UNIT_MAP[unitName.replace('UNIT ','').trim()] || null;
@@ -655,24 +681,16 @@ function resolveUnits(q) {
         });
     }
 
-    // ── 5: nothing matched → return empty (attempt is unit-agnostic / unknown)
     return [...found];
 }
 
-/* ─────────────────────────────────────────────────────────────────────────────
-   buildState(data)
-   For every quiz attempt we credit its score to EVERY resolved unit so that
-   a cross-unit quiz shows up in all relevant unit panels, heatmaps, etc.
-───────────────────────────────────────────────────────────────────────────── */
 function buildState(data){
     ALL_QUIZ = data;
 
-    // Initialise per-unit difficulty buckets
     SECTIONS.forEach(s => {
         TOPIC_DATA[s] = { easy:{a:0,s:0,t:0}, medium:{a:0,s:0,t:0}, hard:{a:0,s:0,t:0} };
     });
 
-    // Initialise per-section accumulators
     Object.keys(DEMO_TOPICS).forEach(u => {
         SECTION_DATA[u] = {};
         Object.keys(DEMO_TOPICS[u]).forEach(sec => {
@@ -685,7 +703,6 @@ function buildState(data){
         const score = parseInt(q.score)  || 0;
         const total = parseInt(q.total)  || 0;
 
-        // ── Credit TOPIC_DATA for every resolved unit ──────────────────────
         const units = resolveUnits(q);
         units.forEach(u => {
             if (TOPIC_DATA[u]?.[diff]) {
@@ -695,10 +712,6 @@ function buildState(data){
             }
         });
 
-        // ── Credit SECTION_DATA: match against every topic title ───────────
-        // This already checks all units/sections independently, so a quiz
-        // whose topic text matches titles in multiple units will naturally
-        // land in all of them — no change needed here, but kept explicit.
         Object.entries(DEMO_TOPICS).forEach(([unit, secs]) => {
             Object.entries(secs).forEach(([sec, title]) => {
                 const tl  = (q.topic || '').toLowerCase();
@@ -712,7 +725,6 @@ function buildState(data){
             });
         });
 
-        // ── Trend data (unchanged) ─────────────────────────────────────────
         if (q.timecreated && total > 0) {
             TREND_DATA.push({
                 ts:  parseInt(q.timecreated),
@@ -734,29 +746,24 @@ function buildFlat(){
     });
 }
 
+/* ── CHANGED: PI formula — removed consistency & recent trend
+   New weights: raw accuracy 40%, coverage 25%, mastery quality 20%, hard accuracy 15%
+── */
 function computePI(){
     const tS=ALL_QUIZ.reduce((a,q)=>a+(parseInt(q.score)||0),0),tM=ALL_QUIZ.reduce((a,q)=>a+(parseInt(q.total)||0),0);
     const rawAcc=tM>0?tS/tM*100:0;
     const totalSec=Object.values(DEMO_TOPICS).reduce((a,u)=>a+Object.keys(u).length,0);
     const pcts=[];Object.values(SECTION_DATA).forEach(secs=>Object.values(secs).forEach(d=>{if(d.total>0)pcts.push(Math.round(d.score/d.total*100));}));
     const coverage=pcts.length/totalSec*100,mastery=pcts.length?pcts.filter(p=>p>=70).length/pcts.length*100:0;
-    const r10=TREND_DATA.slice(-10).map(d=>d.pct);let consistency=100;
-    if(r10.length>1){const avg=r10.reduce((a,b)=>a+b,0)/r10.length;consistency=Math.max(0,100-Math.sqrt(r10.reduce((a,v)=>a+Math.pow(v-avg,2),0)/r10.length));}
     const hT=SECTIONS.reduce((a,u)=>a+TOPIC_DATA[u].hard.t,0),hS=SECTIONS.reduce((a,u)=>a+TOPIC_DATA[u].hard.s,0);
     const hardAcc=hT>0?hS/hT*100:rawAcc*0.5;
-    const first5=TREND_DATA.slice(-10,-5).map(d=>d.pct),last5=TREND_DATA.slice(-5).map(d=>d.pct);
-    const avg5=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:null;
-    const f5=avg5(first5),l5=avg5(last5);
-    let trend=50;
-    if(f5!==null&&l5!==null)trend=Math.min(100,Math.max(0,50+(l5-f5)));else if(l5!==null)trend=l5;
-    const pi=rawAcc*0.30+coverage*0.20+mastery*0.20+consistency*0.15+hardAcc*0.10+trend*0.05;
+    // Weights: raw accuracy 40%, coverage 25%, mastery 20%, hard accuracy 15%
+    const pi=rawAcc*0.40+coverage*0.25+mastery*0.20+hardAcc*0.15;
     return{score:Math.round(Math.min(100,Math.max(0,pi))),factors:[
-        {name:"Raw accuracy",val:Math.round(rawAcc),weight:30},
-        {name:"Coverage",val:Math.round(coverage),weight:20},
+        {name:"Raw accuracy",val:Math.round(rawAcc),weight:40},
+        {name:"Coverage",val:Math.round(coverage),weight:25},
         {name:"Mastery quality",val:Math.round(mastery),weight:20},
-        {name:"Consistency",val:Math.round(consistency),weight:15},
-        {name:"Hard accuracy",val:Math.round(hardAcc),weight:10},
-        {name:"Recent trend",val:Math.round(trend),weight:5},
+        {name:"Hard accuracy",val:Math.round(hardAcc),weight:15},
     ]};
 }
 
@@ -842,8 +849,24 @@ function renderCharts(){
     new Chart(document.getElementById('attemptsChart'),{type:'bar',data:{labels:SECTIONS,datasets:[{label:"Easy",data:e,backgroundColor:"#C0DD97",borderColor:"#639922",borderWidth:1,borderRadius:4},{label:"Medium",data:m,backgroundColor:"#FAC775",borderColor:"#EF9F27",borderWidth:1,borderRadius:4},{label:"Hard",data:h,backgroundColor:"#F09595",borderColor:"#E24B4A",borderWidth:1,borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,position:"top",labels:{boxWidth:8,padding:8,font:{size:10}}},tooltip:{callbacks:{label:ctx=>`${ctx.dataset.label}: ${ctx.raw}`}}},scales:{x:{grid:{display:false},ticks:{font:{size:10}}},y:{beginAtZero:true,ticks:{stepSize:1,precision:0,font:{size:10}},grid:{color:"rgba(0,0,0,0.04)"}}}}});
     const tL=TREND_DATA.map(d=>new Date(d.ts*1000).toLocaleDateString("en-GB",{day:"2-digit",month:"short"})),tV=TREND_DATA.map(d=>d.pct);
     new Chart(document.getElementById('trendChart'),{type:'line',data:{labels:tL.length?tL:["No data"],datasets:[{label:"Score %",data:tV.length?tV:[0],borderColor:"#378ADD",backgroundColor:"rgba(55,138,221,0.07)",borderWidth:2,pointBackgroundColor:"#378ADD",pointRadius:3,tension:.38,fill:true}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>ctx.raw+"%"}}},scales:{x:{grid:{display:false},ticks:{maxRotation:30,maxTicksLimit:7,font:{size:10}}},y:{min:0,max:100,ticks:{callback:v=>v+"%",font:{size:10}},grid:{color:"rgba(0,0,0,0.04)"}}}}});
+
+    // CHANGED: radar chart with side legend showing accuracy per unit
     const rs=SECTIONS.map(u=>unitPct(u)||0);
     new Chart(document.getElementById('radarChart'),{type:'radar',data:{labels:SECTIONS,datasets:[{label:"Mastery %",data:rs,borderColor:"#7F77DD",backgroundColor:"rgba(127,119,221,0.12)",borderWidth:2,pointBackgroundColor:"#7F77DD",pointRadius:3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{r:{beginAtZero:true,max:100,ticks:{stepSize:25,font:{size:9},backdropColor:"transparent"},grid:{color:"rgba(0,0,0,0.07)"},angleLines:{color:"rgba(0,0,0,0.07)"},pointLabels:{font:{size:10},color:"#6B6B6B"}}}}});
+
+    // Populate radar side legend
+    const legendEl = document.getElementById('radarLegend');
+    const maxT = Math.max(...SECTIONS.map(u=>{const d=TOPIC_DATA[u];return d.easy.t+d.medium.t+d.hard.t;}), 1);
+    legendEl.innerHTML = `<div class="radar-legend-title">Accuracy</div>` +
+        SECTIONS.map(u => {
+            const p = unitPct(u);
+            const color = p === null ? '#A8A8A8' : p >= 70 ? '#639922' : p >= 40 ? '#EF9F27' : '#E24B4A';
+            return `<div class="radar-leg-row">
+                <span class="radar-leg-unit">${u}</span>
+                <span class="radar-leg-val" style="color:${color}">${p !== null ? p + '%' : '—'}</span>
+            </div>`;
+        }).join('');
+
     const totalSec=Object.values(DEMO_TOPICS).reduce((a,u)=>a+Object.keys(u).length,0);
     const pcts=[];Object.values(SECTION_DATA).forEach(secs=>Object.values(secs).forEach(d=>{if(d.total>0)pcts.push(Math.round(d.score/d.total*100));}));
     const d1=pcts.filter(p=>p>=70).length,d2=pcts.filter(p=>p>=40&&p<70).length,d3=pcts.filter(p=>p<40).length,d4=totalSec-pcts.length;
@@ -859,17 +882,52 @@ function renderHeatmap(){
     document.getElementById('heatmapWrap').innerHTML=html;
 }
 
+/* CHANGED: strongest/weakest now factor in attempts using a weighted score
+   weighted = accuracy * 0.70 + attempt_ratio * 0.30
+   This ensures a unit with high accuracy but zero attempts doesn't top the list.
+*/
 function renderWeakStrong(){
     const att=FLAT.filter(r=>r.pct!==null);
-    const bars=arr=>!arr.length?`<p style="font-size:11px;color:var(--hint)">No data yet.</p>`:arr.map(r=>`<div class="bar-row"><div class="bar-meta"><span class="bar-name" title="${r.title}">${r.title}</span><span class="bar-pct" style="color:${r.color}">${r.pct}%</span></div><div class="bar-track"><div class="bar-fill" style="width:${r.pct}%;background:${r.color}"></div></div></div>`).join('');
-    document.getElementById('weakSections').innerHTML=bars([...att].sort((a,b)=>a.pct-b.pct).slice(0,8));
-    document.getElementById('strongSections').innerHTML=bars([...att].sort((a,b)=>b.pct-a.pct).slice(0,8));
+    // Compute max attempts across all attempted sections for normalization
+    const maxAttempts = Math.max(...att.map(r=>r.attempts), 1);
+
+    // Compute weighted display value per section
+    const withWeight = att.map(r => {
+        const attemptRatio = r.attempts / maxAttempts * 100;
+        const weighted = r.pct * 0.70 + attemptRatio * 0.30;
+        return {...r, weighted};
+    });
+
+    const bars = arr => !arr.length
+        ? `<p style="font-size:11px;color:var(--hint)">No data yet.</p>`
+        : arr.map(r => `
+            <div class="bar-row">
+                <div class="bar-meta">
+                    <span class="bar-name" title="${r.title}">${r.title}</span>
+                    <span class="bar-pct" style="color:${r.color}">${r.pct}%</span>
+                </div>
+                <div class="bar-track"><div class="bar-fill" style="width:${r.pct}%;background:${r.color}"></div></div>
+            </div>`).join('');
+
+    // Sort by weighted score
+    document.getElementById('weakSections').innerHTML   = bars([...withWeight].sort((a,b)=>a.weighted-b.weighted).slice(0,8));
+    document.getElementById('strongSections').innerHTML = bars([...withWeight].sort((a,b)=>b.weighted-a.weighted).slice(0,8));
 }
 
 function renderInsights(){
     const att=FLAT.filter(r=>r.pct!==null);
     const avgSec=att.length?Math.round(att.reduce((a,r)=>a+r.pct,0)/att.length):0;
-    const us=SECTIONS.map(u=>({unit:u,pct:unitPct(u)})).filter(u=>u.pct!==null).sort((a,b)=>b.pct-a.pct);
+
+    // CHANGED: unit ranking also uses weighted score (accuracy 70% + attempts 30%)
+    const maxT = Math.max(...SECTIONS.map(u=>{const d=TOPIC_DATA[u];return d.easy.t+d.medium.t+d.hard.t;}), 1);
+    const us = SECTIONS.map(u => {
+        const ws = unitWeightedScore(u);
+        if (!ws) return {unit:u, pct:null, weighted:null};
+        const attemptRatio = ws.t / maxT * 100;
+        const weighted = ws.acc * 0.70 + attemptRatio * 0.30;
+        return {unit:u, pct:ws.acc, weighted};
+    }).filter(u=>u.pct!==null).sort((a,b)=>b.weighted-a.weighted);
+
     const best=us[0]||{unit:"—",pct:"—"},worst=us[us.length-1]||{unit:"—",pct:"—"};
     const hT=SECTIONS.reduce((a,u)=>a+TOPIC_DATA[u].hard.t,0),hS=SECTIONS.reduce((a,u)=>a+TOPIC_DATA[u].hard.s,0);
     const hAcc=hT>0?Math.round(hS/hT*100):null;
@@ -885,6 +943,7 @@ function renderInsights(){
     document.getElementById('insightsPanel').innerHTML=rows.map(r=>`<div class="ins-row"><div class="ins-val" style="color:${r.color}">${r.val}</div><div><div class="ins-label">${r.label}</div><div class="ins-sub">${r.sub}</div></div></div>`).join('');
 }
 
+/* CHANGED: section table header — "Accuracy" → "Performance" */
 function filterSections(){
     const u=document.getElementById('unitFilter').value,s=document.getElementById('statusFilter').value,o=document.getElementById('sortFilter').value;
     let rows=FLAT.slice();
@@ -894,7 +953,8 @@ function filterSections(){
     else if(o==='desc')rows.sort((a,b)=>(b.pct??-1)-(a.pct??-1));
     else if(o==='attempts')rows.sort((a,b)=>b.attempts-a.attempts);
     if(!rows.length){document.getElementById('sectionTableWrap').innerHTML=`<p style="font-size:11px;color:var(--hint);padding:8px 0">No sections match.</p>`;return;}
-    let html=`<table class="sec-table"><thead><tr><th>Sec</th><th>Title</th><th>Unit</th><th>Attempts</th><th>Score</th><th>Accuracy</th><th>Status</th></tr></thead><tbody>`;
+    // CHANGED: "Accuracy" column header → "Performance"
+    let html=`<table class="sec-table"><thead><tr><th>Sec</th><th>Title</th><th>Unit</th><th>Attempts</th><th>Score</th><th>Performance</th><th>Status</th></tr></thead><tbody>`;
     rows.forEach(r=>{html+=`<tr><td style="font-family:var(--mono);font-size:10px;color:var(--muted)">${r.sec}</td><td>${r.title}</td><td><span class="badge bb">${r.unit}</span></td><td style="font-family:var(--mono);font-size:11px">${r.attempts}</td><td style="font-family:var(--mono);font-size:11px">${r.score}/${r.total}</td><td><span style="font-family:var(--mono);font-size:11px;color:${r.color}">${r.pct!==null?r.pct+'%':'—'}</span><span class="mbar"><span class="mfill" style="width:${r.pct||0}%;background:${r.color}"></span></span></td><td><span class="badge ${r.cls}">${r.status}</span></td></tr>`;});
     document.getElementById('sectionTableWrap').innerHTML=html+`</tbody></table>`;
 }
@@ -903,20 +963,53 @@ function renderAttemptLog(){
     if(!ALL_QUIZ.length){document.getElementById('attemptLog').innerHTML=`<p style="font-size:11px;color:var(--hint);padding:10px 0">No attempts yet.</p>`;return;}
     document.getElementById('attemptLog').innerHTML=[...ALL_QUIZ].sort((a,b)=>(parseInt(b.timecreated)||0)-(parseInt(a.timecreated)||0)).map(q=>{
         const sc=parseInt(q.score)||0,tot=parseInt(q.total)||0,pct=tot>0?Math.round(sc/tot*100):0;
-        // Show all resolved units for cross-unit quizzes
         const resolvedUnits = resolveUnits(q);
         const unitDisplay = resolvedUnits.length > 0 ? resolvedUnits.join(', ') : (q.unit || '—');
         return `<div class="ag ag-row" style="cursor:pointer;" onclick="window.location.href='${M.cfg.wwwroot}/local/automation/student_quiz_analysis.php?quizid=${q.id}'"><span style="font-size:11px">${q.topic||'—'}</span><span style="font-size:10px;color:var(--muted);font-family:var(--mono)">${unitDisplay}</span><span>${diffBadge(q.difficulty)}</span><span class="score-pill ${scorePillCls(sc,tot)}">${sc}/${tot}</span><span style="font-family:var(--mono);font-size:11px;color:${statusOf(pct).color}">${pct}%</span></div>`;
     }).join('');
 }
 
+/* ── CHANGED: loadAdvice — renders all messages as chat bubbles.
+   Student messages (sender='student') are right-aligned in blue.
+   Teacher messages (all others) are left-aligned in purple.
+   No flag filtering — all messages shown as-is.
+── */
 function loadAdvice(){
     post('get_advice').then(data=>{
-        const list=document.getElementById('adviceList');
-        if(!data||!data.length){list.innerHTML=`<p style="font-size:11px;color:var(--hint)">No advice added yet.</p>`;return;}
-        list.innerHTML=data.map(a=>`<div class="advice-item">${a.advice}<div class="advice-ts">${fmtDate(a.timecreated)}</div></div>`).join('');
-    }).catch(()=>{document.getElementById('adviceList').innerHTML=`<p style="font-size:11px;color:var(--hint)">No advice yet.</p>`;});
+        const list = document.getElementById('adviceList');
+        if (!data || !data.length) {
+            list.innerHTML = `<p class="advice-empty">No advice added yet.</p>`;
+            return;
+        }
+
+        // Sort chronologically (oldest first) so student messages appear at top
+        const sorted = [...data].sort((a, b) => (parseInt(a.timecreated) || 0) - (parseInt(b.timecreated) || 0));
+
+        let html = '';
+        sorted.forEach(item => {
+            const isStudent = (item.sender || '').toLowerCase() === 'student';
+            const wrapCls   = isStudent ? 'from-student' : 'from-teacher';
+            const avCls     = isStudent ? 'advice-av-student' : 'advice-av-teacher';
+            const bblCls    = isStudent ? 'advice-bubble-student' : 'advice-bubble-teacher';
+            const icon      = isStudent ? '🎓' : '👩‍🏫';
+            const who       = isStudent ? 'Student' : 'Teacher';
+
+            html += `
+            <div class="advice-bubble-wrap ${wrapCls}">
+                <div class="advice-av ${avCls}">${icon}</div>
+                <div class="advice-bbl-col">
+                    <div class="advice-bubble ${bblCls}">${escHtml(item.advice)}</div>
+                    <span class="advice-bbl-meta">${who} · ${fmtDate(item.timecreated)}</span>
+                </div>
+            </div>`;
+        });
+
+        list.innerHTML = html;
+    }).catch(() => {
+        document.getElementById('adviceList').innerHTML = `<p class="advice-empty">No advice yet.</p>`;
+    });
 }
+
 function saveAdvice(){
     const ta=document.getElementById('adviceText'),text=ta.value.trim();
     if(!text){ta.focus();return;}

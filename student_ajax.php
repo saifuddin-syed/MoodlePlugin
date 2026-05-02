@@ -6,27 +6,47 @@ require_sesskey();
 
 global $DB, $USER;
 
-$action = required_param('action', PARAM_ALPHANUMEXT);
+$action   = required_param('action', PARAM_ALPHANUMEXT);
 $courseid = required_param('courseid', PARAM_INT);
 
 header('Content-Type: application/json');
 
-error_log("STUDENT AJAX CALLED");
+// ================= RAG CONFIG =================
+define('RAG_BASE', 'http://127.0.0.1:8000');
 
+function rag_post_student(string $endpoint, array $payload): ?array {
+    $ch = curl_init(RAG_BASE . $endpoint);
+
+    curl_setopt_array($ch, [
+        CURLOPT_POST           => true,
+        CURLOPT_POSTFIELDS     => json_encode($payload),
+        CURLOPT_HTTPHEADER     => ['Content-Type: application/json'],
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_TIMEOUT        => 8,
+    ]);
+
+    $raw = curl_exec($ch);
+    curl_close($ch);
+
+    if (!$raw) return null;
+
+    return json_decode($raw, true);
+}
+
+// ================= SWITCH =================
 switch ($action) {
 
-    // ===== Save chat message =====
+    // ===================================================
+    // GENERATE QUIZ
+    // ===================================================
     case 'generate_quiz':
 
         $difficulty = required_param('difficulty', PARAM_TEXT);
-        $count = required_param('count', PARAM_INT);
+        $count      = required_param('count', PARAM_INT);
 
-        $userid = $USER->id;
-
-        // 🔒 CHECK LOCK
         $lock = $DB->get_record('local_automation_quiz_lock', [
-            'studentid' => $userid,
-            'courseid' => $courseid,
+            'studentid'  => $USER->id,
+            'courseid'   => $courseid,
             'difficulty' => $difficulty
         ]);
 
@@ -38,33 +58,30 @@ switch ($action) {
             break;
         }
 
-        /* ================= QUIZ GENERATION ================= */
-
-        // 👉 Replace this with your real logic
-        $html = "";
-
+        $html = '';
         for ($i = 1; $i <= $count; $i++) {
             $html .= "<div style='padding:8px;border:1px solid #ddd;margin-bottom:5px;'>
                         Question $i ($difficulty)
-                    </div>";
+                      </div>";
         }
 
-        echo json_encode([
-            'error' => false,
-            'html' => $html
-        ]);
-
+        echo json_encode(['error' => false, 'html' => $html]);
         break;
+
+
+    // ===================================================
+    // SAVE MESSAGE (AI CHAT)
+    // ===================================================
     case 'save_message':
 
         $message = required_param('message', PARAM_RAW);
-        $sender  = required_param('sender', PARAM_ALPHA);
+        $sender  = required_param('sender', PARAM_ALPHA); // student / ai
 
         $record = new stdClass();
-        $record->studentid = $USER->id;
-        $record->courseid = $courseid;
-        $record->message = $message;
-        $record->sender = $sender;
+        $record->studentid   = $USER->id;
+        $record->courseid    = $courseid;
+        $record->message     = $message;
+        $record->sender      = $sender;
         $record->timecreated = time();
 
         $DB->insert_record('local_automation_student_chat', $record);
@@ -76,7 +93,9 @@ switch ($action) {
         break;
 
 
-    // ===== Fetch chat history =====
+    // ===================================================
+    // FETCH CHAT HISTORY (AI CHAT)
+    // ===================================================
     case 'fetch_history':
 
         $records = $DB->get_records(
@@ -89,29 +108,13 @@ switch ($action) {
         break;
 
 
-    // ===== Insert dummy mini quiz =====
-    case 'insert_dummy_quiz':
-
-        $record = new stdClass();
-        $record->studentid = $USER->id;
-        $record->courseid = $courseid;
-        $record->topic = 'Demo Topic';
-        $record->score = rand(2, 5);
-        $record->total = 5;
-        $record->difficulty = 'medium';
-        $record->recommendation = 'Revise core concepts.';
-        $record->timecreated = time();
-
-        $DB->insert_record('local_automation_student_quiz', $record);
-
-        echo json_encode(['status' => 'quiz_inserted']);
-        break;
-
+    // ===================================================
+    // ASK RAG (AI RESPONSE)
+    // ===================================================
     case 'ask_rag':
 
         $question = required_param('question', PARAM_RAW);
 
-        // Fetch last 6 messages
         $historyrecords = $DB->get_records(
             'local_automation_student_chat',
             ['studentid' => $USER->id, 'courseid' => $courseid],
@@ -120,45 +123,133 @@ switch ($action) {
             0,
             6
         );
+
         $history = [];
 
         foreach (array_reverse($historyrecords) as $rec) {
-            $role = ($rec->sender === 'user') ? 'user' : 'assistant';
             $history[] = [
-                "role" => $role,
-                "content" => $rec->message
+                'role'    => ($rec->sender === 'student') ? 'user' : 'assistant',
+                'content' => $rec->message
             ];
         }
 
-        $payload = json_encode([
-            "question" => $question,
-            "history" => $history
+        $response = rag_post_student('/ask', [
+            'question' => $question,
+            'history'  => $history
         ]);
 
-        $ch = curl_init('http://127.0.0.1:8000/ask');
-
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_POST, true);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, [
-            'Content-Type: application/json'
-        ]);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
-
-        $result = curl_exec($ch);
-
-        if ($result === false) {
+        if (!$response) {
             echo json_encode([
-                "ok" => false,
-                "error" => curl_error($ch)
+                'ok' => false,
+                'error' => 'RAG server not responding'
             ]);
-            curl_close($ch);
             break;
         }
 
-        curl_close($ch);
-
-        echo $result;
+        echo json_encode($response);
         break;
+
+
+    // ===================================================
+    // INSERT DUMMY QUIZ
+    // ===================================================
+    case 'insert_dummy_quiz':
+
+        $record = new stdClass();
+        $record->studentid   = $USER->id;
+        $record->courseid    = $courseid;
+        $record->topic       = 'Demo Topic';
+        $record->score       = rand(2, 5);
+        $record->total       = 5;
+        $record->difficulty  = 'medium';
+        $record->recommendation = 'Revise core concepts.';
+        $record->timecreated = time();
+
+        $DB->insert_record('local_automation_student_quiz', $record);
+
+        echo json_encode(['status' => 'quiz_inserted']);
+        break;
+
+
+    // ===================================================
+    // SEND STUDENT MESSAGE (TEACHER CHAT)
+    // ===================================================
+    case 'send_student_msg':
+
+        $message = trim(required_param('message', PARAM_TEXT));
+
+        if ($message === '') {
+            echo json_encode(['ok' => false, 'error' => 'Message cannot be empty.']);
+            break;
+        }
+
+        // RAG relevance check
+        $flag = rag_post_student('/flag-message', [
+            'message'   => $message
+        ]);
+        if (!$flag || empty($flag['ok'])) {
+            echo json_encode([
+                'ok' => false,
+                'error' => 'Could not verify message relevance.'
+            ]);
+            break;
+        }
+
+        if (!$flag['relevant']) {
+            echo json_encode([
+                'ok' => false,
+                'relevant' => false,
+                'score' => $flag['score'] ?? null,
+                'error' => 'Message not course-related.'
+            ]);
+            break;
+        }
+
+        $record = new stdClass();
+        $record->studentid   = $USER->id;
+        $record->teacherid   = 0;
+        $record->courseid    = $courseid;
+        $record->advice      = $message;
+        $record->sender      = 'student';
+        $record->timecreated = time();
+
+        $id = $DB->insert_record('local_automation_advice', $record);
+
+        echo json_encode([
+            'ok' => true,
+            'id' => $id,
+            'score' => $flag['score'] ?? null
+        ]);
+        break;
+
+
+    // ===================================================
+    // GET TEACHER CHAT HISTORY
+    // ===================================================
+    case 'get_chat_history':
+
+        $rows = $DB->get_records(
+            'local_automation_advice',
+            ['studentid' => $USER->id, 'courseid' => $courseid],
+            'timecreated ASC'
+        );
+
+        $messages = [];
+
+        foreach ($rows as $r) {
+            $messages[] = [
+                'sender'      => $r->sender,
+                'message'     => $r->advice,
+                'teacherid'   => (int)$r->teacherid,
+                'timecreated' => (int)$r->timecreated,
+            ];
+        }
+
+        echo json_encode($messages);
+        break;
+
+
+    // ===================================================
     default:
         echo json_encode(['error' => 'Invalid action']);
 }

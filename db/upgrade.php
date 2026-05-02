@@ -71,6 +71,7 @@ function xmldb_local_automation_upgrade($oldversion) {
             $table3->add_field('teacherid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL);
             $table3->add_field('courseid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL);
             $table3->add_field('advice', XMLDB_TYPE_TEXT, null, null, XMLDB_NOTNULL);
+            $table3->add_field('sender', XMLDB_TYPE_CHAR, '10', null, XMLDB_NOTNULL);
             $table3->add_field('timecreated', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL);
 
             $table3->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
@@ -201,6 +202,26 @@ function xmldb_local_automation_upgrade($oldversion) {
     
         // ✅ FIXED savepoint
         upgrade_plugin_savepoint(true, 2026042003, 'local', 'automation');
+    }
+    if ($oldversion < 2026042704) {
+ 
+        $table = new xmldb_table('local_automation_advice');
+        $field = new xmldb_field(
+            'sender',
+            XMLDB_TYPE_CHAR,
+            '10',
+            null,
+            XMLDB_NOTNULL,
+            null,
+            'teacher',   // default — all existing rows are teacher advice
+            'timecreated'
+        );
+ 
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+ 
+        upgrade_plugin_savepoint(true, 2026042709, 'local', 'automation');
     }
 
     return true;

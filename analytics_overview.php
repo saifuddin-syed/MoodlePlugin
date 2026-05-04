@@ -72,6 +72,26 @@ div[data-region="blocks-column"],.drawers,.drawers .main-inner
 /* ══════════════════════════════════════════════════════════════
    NAV
 ══════════════════════════════════════════════════════════════ */
+.back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--font);
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--muted);
+    background: var(--surface);
+    border: 0.5px solid var(--border-md);
+    border-radius: var(--rsm);
+    padding: 5px 12px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: color .15s, border-color .15s, box-shadow .15s;
+    box-shadow: var(--sh);
+}
+.back-btn:hover { color: var(--text); border-color: rgba(0,0,0,0.2); box-shadow: var(--shm); }
+.back-btn svg  { width: 14px; height: 14px; flex-shrink: 0; }
+
 .ov-nav{
     position:sticky;top:0;z-index:100;
     background:rgba(245,244,240,0.94);
@@ -324,6 +344,12 @@ div[data-region="blocks-column"],.drawers,.drawers .main-inner
 <!-- ═══════════ NAV ═══════════ -->
 <nav class="ov-nav">
     <div class="ov-nav-left">
+        <a class="back-btn" href="javascript:history.back()">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M10 3L5 8l5 5"/>
+            </svg>
+            Back
+        </a>
         <div class="nav-icon">📊</div>
         <div>
             <div class="nav-title">Class Analytics</div>

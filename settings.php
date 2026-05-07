@@ -22,8 +22,8 @@ if ($hassiteconfig) { // needs admin access
         'local_automation/groq_model',
         get_string('groqmodel', 'local_automation'),
         get_string('groqmodel_desc', 'local_automation'),
-        'llama-3.1-8b-instant',
-        PARAM_ALPHANUMEXT
+        'llama-3.3-70b-versatile',
+        PARAM_TEXT
     ));
 
     // Demo Course ID for Student AI

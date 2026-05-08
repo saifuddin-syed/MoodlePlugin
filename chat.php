@@ -73,21 +73,14 @@ echo $OUTPUT->header();
 .badge-role    { background: #f5f3ff; color: var(--purple); border: 1.5px solid #ddd8f8; }
 .timestamp-lbl { margin-left: auto; font-size: 12px; color: var(--text-muted); }
 
-/* ── Two-panel layout ────────────────────────────────────────── */
-.panels {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    max-width: 820px;
-}
-
-/* ── Shared panel card ───────────────────────────────────────── */
+/* ── Panel card ──────────────────────────────────────────────── */
 .panel {
     background: var(--surface);
     border: 1.5px solid var(--border);
     border-radius: 16px;
     overflow: hidden;
     box-shadow: 0 2px 12px rgba(0,0,0,.05);
+    max-width: 820px;
 }
 
 .panel-header {
@@ -99,13 +92,10 @@ echo $OUTPUT->header();
     width: 32px; height: 32px; border-radius: 9px;
     display: flex; align-items: center; justify-content: center;
     font-size: 16px; flex-shrink: 0;
+    background: var(--bg);
 }
-.panel-icon-teacher { background: var(--purple-light); }
-.panel-icon-student { background: var(--blue-light); }
-
 .panel-label {
-    font-size: 13px; font-weight: 700;
-    letter-spacing: .2px;
+    font-size: 13px; font-weight: 700; letter-spacing: .2px;
 }
 .panel-sublabel {
     font-size: 11px; color: var(--text-muted); margin-left: auto;
@@ -118,8 +108,8 @@ echo $OUTPUT->header();
     display: flex;
     flex-direction: column;
     gap: 12px;
-    min-height: 200px;
-    max-height: 320px;
+    min-height: 300px;
+    max-height: 480px;
 }
 
 .state-msg {
@@ -259,114 +249,75 @@ echo $OUTPUT->header();
         <span class="timestamp-lbl" id="lastUpdated"></span>
     </div>
 
-    <div class="panels">
+    <div class="panel">
 
-        <!-- ════════════════════════════════════════════════════
-             PANEL 1 · TEACHER ADVICE (top)
-        ═════════════════════════════════════════════════════ -->
-        <div class="panel">
+        <div class="panel-header">
+            <div class="panel-icon">💬</div>
+            <span class="panel-label">Conversation</span>
+            <span class="panel-sublabel">
+                <?php if ($is_teacher): ?>
+                    Student questions &amp; your advice
+                <?php else: ?>
+                    Your questions &amp; instructor feedback
+                <?php endif; ?>
+            </span>
+        </div>
 
-            <div class="panel-header">
-                <div class="panel-icon panel-icon-teacher">👩‍🏫</div>
-                <span class="panel-label" style="color:var(--purple)">Teacher Advice</span>
-                <span class="panel-sublabel">Guidance &amp; feedback from your instructor</span>
+        <!-- Unified thread — all messages chronologically -->
+        <div class="thread" id="thread-main">
+            <div class="state-msg">
+                <div class="state-icon">⏳</div>
+                <p>Loading…</p>
             </div>
+        </div>
 
-            <div class="thread" id="thread-teacher">
-                <div class="state-msg">
-                    <div class="state-icon">⏳</div>
-                    <p>Loading…</p>
-                </div>
+        <!-- Compose: Teacher -->
+        <?php if ($is_teacher): ?>
+        <div class="compose-wrap">
+            <div id="toastTeacher" class="flag-toast"></div>
+            <div class="compose-row">
+                <textarea
+                    id="inputTeacher"
+                    class="compose-input teacher-focus"
+                    placeholder="Write advice or feedback for this student…"
+                ></textarea>
+                <button id="btnTeacher" class="send-btn btn-teacher" onclick="sendTeacher()">
+                    <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
+                        <path d="M14 8L2 2l2 6-2 6 12-6z" stroke="currentColor"
+                              stroke-width="1.6" stroke-linejoin="round"/>
+                    </svg>
+                    Send Advice
+                </button>
             </div>
+        </div>
 
-            <?php if ($is_teacher): ?>
-            <!-- Teacher can compose advice -->
-            <div class="compose-wrap">
-                <div id="toastTeacher" class="flag-toast"></div>
-                <div class="compose-row">
-                    <textarea
-                        id="inputTeacher"
-                        class="compose-input teacher-focus"
-                        placeholder="Write advice or feedback for this student…"
-                    ></textarea>
-                    <button
-                        id="btnTeacher"
-                        class="send-btn btn-teacher"
-                        onclick="sendTeacher()"
-                    >
-                        <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
-                            <path d="M14 8L2 2l2 6-2 6 12-6z" stroke="currentColor"
-                                  stroke-width="1.6" stroke-linejoin="round"/>
-                        </svg>
-                        Send Advice
-                    </button>
-                </div>
+        <!-- Compose: Student -->
+        <?php elseif ($is_student): ?>
+        <div class="compose-wrap">
+            <div id="toastStudent" class="flag-toast"></div>
+            <div class="compose-row">
+                <textarea
+                    id="inputStudent"
+                    class="compose-input"
+                    placeholder="Ask a question related to the course syllabus…"
+                ></textarea>
+                <button id="btnStudent" class="send-btn btn-student" onclick="sendStudent()">
+                    <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
+                        <path d="M14 8L2 2l2 6-2 6 12-6z" stroke="currentColor"
+                              stroke-width="1.6" stroke-linejoin="round"/>
+                    </svg>
+                    Ask Question
+                </button>
             </div>
-            <?php else: ?>
-            <!-- Student sees read-only notice for teacher panel -->
-            <div class="readonly-notice">
-                🔒 Instructor messages are read-only for students
-            </div>
-            <?php endif; ?>
+        </div>
 
-        </div><!-- /panel teacher -->
+        <?php else: ?>
+        <div class="readonly-notice">
+            🔒 You do not have permission to send messages here
+        </div>
+        <?php endif; ?>
 
-
-        <!-- ════════════════════════════════════════════════════
-             PANEL 2 · STUDENT QUESTIONS (bottom)
-        ═════════════════════════════════════════════════════ -->
-        <div class="panel">
-
-            <div class="panel-header">
-                <div class="panel-icon panel-icon-student">🎓</div>
-                <span class="panel-label" style="color:var(--blue)">Student Questions</span>
-                <span class="panel-sublabel">Course-related questions from the student</span>
-            </div>
-
-            <div class="thread" id="thread-student">
-                <div class="state-msg">
-                    <div class="state-icon">⏳</div>
-                    <p>Loading…</p>
-                </div>
-            </div>
-
-            <?php if ($is_student): ?>
-            <!-- Student can compose questions (flag logic applied server-side) -->
-            <div class="compose-wrap">
-                <div id="toastStudent" class="flag-toast"></div>
-                <div class="compose-row">
-                    <textarea
-                        id="inputStudent"
-                        class="compose-input"
-                        placeholder="Ask a question related to the course syllabus…"
-                    ></textarea>
-                    <button
-                        id="btnStudent"
-                        class="send-btn btn-student"
-                        onclick="sendStudent()"
-                    >
-                        <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
-                            <path d="M14 8L2 2l2 6-2 6 12-6z" stroke="currentColor"
-                                  stroke-width="1.6" stroke-linejoin="round"/>
-                        </svg>
-                        Ask Question
-                    </button>
-                </div>
-            </div>
-            <?php elseif ($is_teacher): ?>
-            <!-- Teacher sees student questions read-only -->
-            <div class="readonly-notice">
-                👁 Viewing student questions — reply via the Teacher Advice panel above
-            </div>
-            <?php else: ?>
-            <div class="readonly-notice">
-                🔒 You do not have permission to send messages here
-            </div>
-            <?php endif; ?>
-
-        </div><!-- /panel student -->
-
-    </div><!-- /panels -->
+    </div><!-- /panel -->
 
 </div>
 
@@ -381,9 +332,7 @@ const WWWROOT   = M.cfg.wwwroot;
 const STUDENT_AJAX   = WWWROOT + '/local/automation/student_ajax.php';
 const ANALYTICS_AJAX = WWWROOT + '/local/automation/analytics_ajax.php';
 
-// Track last message counts to avoid re-scrolling unnecessarily
-let lastTeacherCount = 0;
-let lastStudentCount = 0;
+let lastMsgCount = 0;
 
 // ── Helpers ──────────────────────────────────────────────────
 function post(url, params) {
@@ -414,26 +363,22 @@ function showToast(el, text, cls) {
     setTimeout(() => { el.className = 'flag-toast'; }, 4000);
 }
 
-// ── Render helpers ────────────────────────────────────────────
-/**
- * Render a filtered list of messages into a thread element.
- * @param {string}   threadId   - DOM id of the thread div
- * @param {Array}    messages   - already-filtered messages for this panel
- * @param {string}   senderKey  - 'teacher' or 'student'
- * @param {number}   lastCount  - previous message count (for scroll)
- * @returns {number} new count
- */
-function renderPanel(threadId, messages, senderKey, lastCount) {
-    const thread = document.getElementById(threadId);
+// ── Render unified thread ─────────────────────────────────────
+function renderThread(messages) {
+    const thread = document.getElementById('thread-main');
 
     if (!messages || messages.length === 0) {
         thread.innerHTML = `
         <div class="state-msg">
-            <div class="state-icon">${senderKey === 'teacher' ? '👩‍🏫' : '🎓'}</div>
-            <p>No ${senderKey === 'teacher' ? 'advice' : 'questions'} yet.</p>
+            <div class="state-icon">💬</div>
+            <p>No messages yet. Start the conversation!</p>
         </div>`;
-        return 0;
+        lastMsgCount = 0;
+        return;
     }
+
+    // Sort all messages chronologically
+    messages.sort((a, b) => a.timecreated - b.timecreated);
 
     let html = '', lastDate = null;
 
@@ -466,14 +411,14 @@ function renderPanel(threadId, messages, senderKey, lastCount) {
 
     thread.innerHTML = html;
 
-    if (messages.length !== lastCount) {
+    if (messages.length !== lastMsgCount) {
         thread.scrollTop = thread.scrollHeight;
     }
 
-    return messages.length;
+    lastMsgCount = messages.length;
 }
 
-// ── Load history (single call, split into two panels) ─────────
+// ── Load history ──────────────────────────────────────────────
 function loadHistory() {
     const url    = isTeacher ? ANALYTICS_AJAX : STUDENT_AJAX;
     const params = { action: 'get_chat_history' };
@@ -481,25 +426,16 @@ function loadHistory() {
 
     post(url, params)
         .then(data => {
-            const all = Array.isArray(data) ? data : [];
-
-            const teacherMsgs = all.filter(m => m.sender === 'teacher');
-            const studentMsgs = all.filter(m => m.sender === 'student');
-
-            lastTeacherCount = renderPanel('thread-teacher', teacherMsgs, 'teacher', lastTeacherCount);
-            lastStudentCount = renderPanel('thread-student', studentMsgs, 'student', lastStudentCount);
-
+            renderThread(Array.isArray(data) ? data : []);
             document.getElementById('lastUpdated').textContent =
                 'Updated ' + new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
         })
         .catch(() => {
-            const errHtml = `
+            document.getElementById('thread-main').innerHTML = `
             <div class="state-msg">
                 <div class="state-icon">⚠️</div>
                 <p>Could not load messages. Retrying…</p>
             </div>`;
-            document.getElementById('thread-teacher').innerHTML = errHtml;
-            document.getElementById('thread-student').innerHTML = errHtml;
         });
 }
 
@@ -535,7 +471,7 @@ function sendTeacher() {
         });
 }
 
-// ── Send: Student question (flag logic applied server-side) ───
+// ── Send: Student question ────────────────────────────────────
 function sendStudent() {
     const input = document.getElementById('inputStudent');
     const btn   = document.getElementById('btnStudent');
@@ -571,12 +507,13 @@ function sendStudent() {
 document.addEventListener('keydown', e => {
     if (!(e.ctrlKey || e.metaKey) || e.key !== 'Enter') return;
     e.preventDefault();
-    if (document.activeElement.id === 'inputTeacher')  sendTeacher();
-    if (document.activeElement.id === 'inputStudent')  sendStudent();
+    if (document.activeElement.id === 'inputTeacher') sendTeacher();
+    if (document.activeElement.id === 'inputStudent') sendStudent();
 });
 
 // ── Boot ─────────────────────────────────────────────────────
 loadHistory();
+setInterval(loadHistory, 30000);
 </script>
 
 <?php echo $OUTPUT->footer(); ?>

@@ -432,7 +432,7 @@ div[data-region="blocks-column"], .drawers, .drawers .main-inner {
             <div class="settings-row">
                 <div class="setting-block">
                     <label>Number of Questions</label>
-                    <input type="number" id="questionCount" min="1" placeholder="e.g. 10">
+                    <input type="number" id="questionCount" min="1" placeholder="e.g. 3">
                 </div>
                 <div class="setting-block">
                     <label>Difficulty</label>
